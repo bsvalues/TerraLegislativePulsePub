@@ -1,0 +1,115 @@
+Benton County Assessor AI Platform
+System Overview
+The Benton County Assessor AI Platform is a comprehensive system designed to transform property assessment operations through the power of artificial intelligence. This platform aims to enhance data quality, streamline workflows, and ensure adherence to Washington State regulations.
+
+Architecture
+The platform is built on a multi-agent architecture orchestrated by a Master Control Program (MCP):
+
+Master Control Program (MCP) - Central orchestration system that coordinates all agents
+Specialized AI Agents:
+Data Validation Agent - Ensures property data integrity against WA standards
+Valuation Agent - Calculates property values using multiple approaches
+User Interaction Agent - Handles natural language interface for staff
+Property Impact Analyzer - Analyzes legislative impact on property assessments
+Core Capabilities
+Data Validation
+The Data Validation Agent performs comprehensive validation of property assessment data according to Washington State Department of Revenue guidelines:
+
+Parcel ID format validation
+Address validation
+Value range validation
+Property classification checks
+Data completeness checks
+API Endpoint: /api/mcp/property-validate
+
+Property Valuation
+The Valuation Agent implements multiple valuation methodologies in accordance with Washington State standards:
+
+Market comparison approach
+Cost approach
+Income approach (for commercial properties)
+API Endpoint: /api/mcp/property-value
+
+Legislative Impact Analysis
+The Property Impact Analyzer examines how legislative changes may affect property assessments:
+
+Impact on valuation methodologies
+Changes to property tax calculations
+Effects on specific property classes
+Implementation requirements and timelines
+API Endpoint: /api/mcp/property-impact
+
+Natural Language Interface
+The User Interaction Agent provides a natural language interface for assessor staff:
+
+Property search
+Valuation requests
+Data validation
+Help and guidance
+API Endpoint: /api/mcp/user-query
+
+Technical Implementation
+Master Control Program
+The MCP serves as the central orchestration system, managing agent registration, message routing, and system monitoring. It provides a unified interface for external systems to access the capabilities of specialized agents.
+
+Message Protocol
+All internal communication is standardized using a Model Content Protocol (MCP) that ensures consistent message formats, error handling, and routing between agents.
+
+Integration Points
+The system integrates with:
+
+Washington Legislature Bill Tracking
+OpenStates API for legislative data
+LegiScan API for comprehensive bill information
+Benton County document systems
+API Endpoints
+Endpoint	Method	Description
+/api/mcp/status	GET	Get the current status of the MCP and agents
+/api/mcp/property-validate	POST	Validate property data against WA standards
+/api/mcp/property-value	POST	Calculate property value using specified approach
+/api/mcp/property-impact	POST	Analyze how legislation impacts property assessments
+/api/mcp/user-query	POST	Process natural language queries from staff
+/api/mcp/batch-validate	POST	Validate multiple properties in a batch
+Data Sources
+Property Data: Benton County assessor database
+Valuation Factors: Washington State Department of Revenue guidelines
+Legislative Data: Washington Legislature, OpenStates, LegiScan
+Geographic Data: Benton County GIS services
+System Requirements
+Python 3.10+
+PostgreSQL database
+Anthropic API access (for Claude AI integration)
+Flask web framework
+Future Enhancements
+Workflow Agent - Automate routine assessment tasks
+Legal Compliance Agent - Monitor regulatory adherence
+GIS Integration - Enhanced spatial analysis capabilities
+Machine Learning Models - Advanced anomaly detection
+Mobile Interface - Field assessment capabilities
+Security and Compliance
+The system is designed with security and compliance in mind:
+
+All API endpoints require authentication
+Sensitive data is never exposed via APIs
+All actions are logged for audit purposes
+All functionality complies with Washington State regulations
+Getting Started
+To use the Benton County Assessor AI Platform:
+
+Ensure database connection is configured
+Set the ANTHROPIC_API_KEY environment variable
+Start the application server
+Access the API endpoints for specific functionality
+Example API request to validate property data:
+
+curl -X POST http://localhost:5000/api/mcp/property-validate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "property_data": {
+      "parcel_id": "12345678-123",
+      "property_address": "123 Example St, Kennewick, WA",
+      "assessment_year": 2025,
+      "assessed_value": 250000.00,
+      "property_class": "Residential"
+    }
+  }'
