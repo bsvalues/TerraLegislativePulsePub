@@ -55,8 +55,10 @@ def create_app(config_class=Config):
     # Register blueprints
     from routes.ai_api import ai_api_bp
     from routes.web import web_bp
+    from routes.bill_api import bill_api_bp
     app.register_blueprint(ai_api_bp)
     app.register_blueprint(web_bp)
+    app.register_blueprint(bill_api_bp)
     
     # Configure Flask-Login
     login_manager.login_view = 'web.login'
