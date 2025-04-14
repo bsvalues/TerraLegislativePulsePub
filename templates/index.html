@@ -4,12 +4,28 @@
 
 {% block content %}
 <div class="px-4 py-5 text-center position-relative" style="min-height: 500px; overflow: hidden;">
-    <!-- Washington State Capitol Background Image -->
+    <!-- Washington State Capitol background simulation using gradients -->
     <div class="position-absolute top-0 start-0 end-0 bottom-0" style="
-        background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
-        url('https://live.staticflickr.com/65535/48778735436_93d192c729_b.jpg');
+        background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(23, 43, 77, 0.8)), 
+        linear-gradient(135deg, #004080 0%, #001a33 100%);
         background-size: cover;
         background-position: center;
+        z-index: -3;
+    "></div>
+    
+    <!-- Background texture overlay -->
+    <div class="position-absolute top-0 start-0 end-0 bottom-0" style="
+        background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+        background-size: 20px 20px;
+        opacity: 0.3;
+        z-index: -2;
+    "></div>
+    
+    <!-- Atmospheric glow -->
+    <div class="position-absolute top-0 start-0 end-0 bottom-0" style="
+        background: radial-gradient(ellipse at top, rgba(100, 160, 255, 0.1) 0%, transparent 70%);
         z-index: -1;
     "></div>
     
