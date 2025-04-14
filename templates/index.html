@@ -1,0 +1,154 @@
+{% extends "layout.html" %}
+
+{% block title %}Benton County Assessor AI Platform - Home{% endblock %}
+
+{% block content %}
+<div class="landing-hero mb-5">
+    <div class="container text-center py-5">
+        <h1 class="display-4">Benton County Assessor AI Platform</h1>
+        <p class="lead">Transforming property assessment through artificial intelligence</p>
+        {% if not current_user.is_authenticated %}
+        <div class="mt-4">
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-sign-in-alt me-2"></i> Log In
+            </a>
+        </div>
+        {% else %}
+        <div class="mt-4">
+            <a href="{{ url_for('web.dashboard') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-tachometer-alt me-2"></i> Go to Dashboard
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="container">
+    <!-- System Overview -->
+    <section class="mb-5">
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <h2>System Overview</h2>
+                <p class="lead">A comprehensive platform designed to enhance data quality, streamline workflows, and ensure compliance with Washington State regulations.</p>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            Data Validation
+                        </h3>
+                        <p class="card-text">Ensures property data integrity against Washington State standards, including parcel ID format, address validation, value range checks, property classification, and data completeness.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title">
+                            <i class="fas fa-chart-line text-primary me-2"></i>
+                            Property Valuation
+                        </h3>
+                        <p class="card-text">Implements multiple valuation methodologies in accordance with Washington State standards: market comparison approach, cost approach, and income approach for commercial properties.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title">
+                            <i class="fas fa-landmark text-warning me-2"></i>
+                            Legislative Impact
+                        </h3>
+                        <p class="card-text">Examines how legislative changes affect property assessments, including impacts on valuation methodologies, property tax calculations, and specific property classes.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Architecture -->
+    <section class="mb-5">
+        <div class="row">
+            <div class="col-md-12">
+                <h2 class="text-center">Multi-Agent Architecture</h2>
+                <p class="text-center">Built on a sophisticated multi-agent system orchestrated by a Master Control Program (MCP)</p>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-lg-8 offset-lg-2">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title text-center">Agent System</h4>
+                        <div class="d-flex justify-content-center my-4">
+                            <div class="text-center">
+                                <div class="card bg-primary mb-3 mx-auto" style="width: 200px;">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Master Control Program</h5>
+                                        <p class="card-text">Central orchestration system</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between mt-4">
+                                    <div class="card bg-dark mb-3 mx-2" style="width: 150px;">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Data Validation</h6>
+                                            <p class="card-text small">Ensures data integrity</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="card bg-dark mb-3 mx-2" style="width: 150px;">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Valuation</h6>
+                                            <p class="card-text small">Calculates property values</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="card bg-dark mb-3 mx-2" style="width: 150px;">
+                                        <div class="card-body">
+                                            <h6 class="card-title">User Interaction</h6>
+                                            <p class="card-text small">Natural language interface</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="card bg-dark mb-3 mx-2" style="width: 150px;">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Impact Analyzer</h6>
+                                            <p class="card-text small">Legislative impact analysis</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Getting Started -->
+    <section class="mb-5">
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <h2>Getting Started</h2>
+                <p>Log in to begin using the Benton County Assessor AI Platform</p>
+                {% if not current_user.is_authenticated %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary mt-3">
+                    <i class="fas fa-sign-in-alt me-2"></i> Log In
+                </a>
+                {% else %}
+                <a href="{{ url_for('web.dashboard') }}" class="btn btn-primary mt-3">
+                    <i class="fas fa-tachometer-alt me-2"></i> Go to Dashboard
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

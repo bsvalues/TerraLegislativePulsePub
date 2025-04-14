@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+
+{% block title %}Login - Benton County Assessor AI Platform{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card mt-5">
+                <div class="card-header">
+                    <h5 class="m-0 font-weight-bold">Login</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('auth.login') }}">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                            <label class="form-check-label" for="remember">Remember me</label>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt me-2"></i> Login
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <p class="mb-0">Don't have an account? Contact your administrator.</p>
+                </div>
+            </div>
+            
+            <!-- Temporary Testing Credentials - For Development Only -->
+            <div class="alert alert-info mt-4">
+                <h6 class="alert-heading">Development Test Credentials</h6>
+                <p class="mb-0">For testing purposes only:</p>
+                <ul class="mb-0">
+                    <li><strong>Username:</strong> admin</li>
+                    <li><strong>Password:</strong> benton2025</li>
+                </ul>
+                <hr>
+                <p class="mb-0 small text-muted">Note: This notice will be removed in production.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

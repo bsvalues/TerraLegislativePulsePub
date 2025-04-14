@@ -1,0 +1,234 @@
+{% extends "layout.html" %}
+
+{% block title %}Property Validation - Benton County Assessor AI Platform{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1>Property Data Validation</h1>
+            <p class="lead">Validate property data against Washington State Department of Revenue guidelines</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Validation Form -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="m-0 font-weight-bold">Validation Form</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="parcel_id" class="form-label">Parcel ID</label>
+                            <input type="text" class="form-control" id="parcel_id" name="parcel_id" 
+                                   value="{{ property_data.parcel_id if property_data else '' }}"
+                                   placeholder="Format: 12345678-123" required>
+                            <div class="form-text">Must match Washington State format (8 digits, hyphen, 3 digits)</div>
+                            <div class="invalid-feedback">
+                                Please provide a valid parcel ID.
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="property_address" class="form-label">Property Address</label>
+                            <input type="text" class="form-control" id="property_address" name="property_address"
+                                   value="{{ property_data.property_address if property_data else '' }}"
+                                   placeholder="123 Example St, Kennewick, WA" required>
+                            <div class="invalid-feedback">
+                                Please provide a property address.
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="assessment_year" class="form-label">Assessment Year</label>
+                            <input type="number" class="form-control" id="assessment_year" name="assessment_year"
+                                   value="{{ property_data.assessment_year if property_data else '2025' }}"
+                                   min="2020" max="2026" required>
+                            <div class="invalid-feedback">
+                                Please provide a valid assessment year (2020-2026).
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="assessed_value" class="form-label">Assessed Value</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="assessed_value" name="assessed_value"
+                                       value="{{ property_data.assessed_value if property_data else '' }}"
+                                       min="1000" step="0.01" required>
+                            </div>
+                            <div class="form-text">Minimum value: $1,000.00</div>
+                            <div class="invalid-feedback">
+                                Please provide a valid assessed value.
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="property_class" class="form-label">Property Class</label>
+                            <select class="form-select" id="property_class" name="property_class" required>
+                                <option value="" selected disabled>Select property class</option>
+                                {% for class_name in property_classes %}
+                                <option value="{{ class_name }}" {% if property_data and property_data.property_class == class_name %}selected{% endif %}>
+                                    {{ class_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div id="class_codes_display" class="form-text d-none"></div>
+                            <div class="invalid-feedback">
+                                Please select a property class.
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check-circle me-2"></i> Validate Property Data
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Validation Results -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="m-0 font-weight-bold">Validation Results</h5>
+                </div>
+                <div class="card-body">
+                    {% if validation_results %}
+                        <div class="validation-results 
+                            {% if validation_results.has_errors %}has-errors
+                            {% elif validation_results.has_warnings %}has-warnings
+                            {% else %}valid{% endif %}">
+                            
+                            <div class="mb-3">
+                                <h5>
+                                    {% if validation_results.has_errors %}
+                                        <i class="fas fa-times-circle text-danger me-2"></i> Validation Failed
+                                    {% elif validation_results.has_warnings %}
+                                        <i class="fas fa-exclamation-triangle text-warning me-2"></i> Validation Passed with Warnings
+                                    {% else %}
+                                        <i class="fas fa-check-circle text-success me-2"></i> Validation Passed
+                                    {% endif %}
+                                </h5>
+                            </div>
+                            
+                            {% if validation_results.has_errors %}
+                                <div class="mb-3">
+                                    <h6 class="text-danger">Errors:</h6>
+                                    <ul class="list-group">
+                                        {% for error in validation_results.errors %}
+                                        <li class="list-group-item list-group-item-danger">{{ error }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+                            
+                            {% if validation_results.has_warnings %}
+                                <div class="mb-3">
+                                    <h6 class="text-warning">Warnings:</h6>
+                                    <ul class="list-group">
+                                        {% for warning in validation_results.warnings %}
+                                        <li class="list-group-item list-group-item-warning">{{ warning }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+                            
+                            {% if not validation_results.has_errors and not validation_results.has_warnings %}
+                                <div class="alert alert-success">
+                                    <i class="fas fa-check-circle me-2"></i> All validation checks passed successfully.
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info mb-0">
+                            <i class="fas fa-info-circle me-2"></i> Enter property details and click "Validate Property Data" to see validation results.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Validation Guidelines -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="m-0 font-weight-bold">Validation Guidelines</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <i class="fas fa-check text-success me-2"></i> Parcel ID must match pattern: 12345678-123
+                        </li>
+                        <li class="list-group-item">
+                            <i class="fas fa-check text-success me-2"></i> Property address should include Washington state
+                        </li>
+                        <li class="list-group-item">
+                            <i class="fas fa-check text-success me-2"></i> Assessment year must be between 2020 and the next year
+                        </li>
+                        <li class="list-group-item">
+                            <i class="fas fa-check text-success me-2"></i> Assessed value must be at least $1,000
+                        </li>
+                        <li class="list-group-item">
+                            <i class="fas fa-check text-success me-2"></i> Property class must be a valid Washington State classification
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Batch Validation Section -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="m-0 font-weight-bold">Batch Validation</h5>
+                </div>
+                <div class="card-body">
+                    <p>For batch validation of multiple properties, use the API endpoint:</p>
+                    <div class="bg-dark p-3 rounded">
+                        <code>POST /api/mcp/batch-validate</code>
+                    </div>
+                    <div class="mt-3">
+                        <a href="#" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#batchValidationModal">
+                            <i class="fas fa-file-upload me-2"></i> Upload Batch File
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Batch Validation Modal -->
+<div class="modal fade" id="batchValidationModal" tabindex="-1" aria-labelledby="batchValidationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="batchValidationModalLabel">Batch Validation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> Feature coming soon. Batch validation will allow uploading CSV files with multiple properties for validation.
+                </div>
+                <form>
+                    <div class="mb-3">
+                        <label for="batchFile" class="form-label">Property Data File (CSV)</label>
+                        <input class="form-control" type="file" id="batchFile" disabled>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" disabled>
+                    <i class="fas fa-check-circle me-2"></i> Validate Batch
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
