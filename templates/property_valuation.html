@@ -265,41 +265,74 @@
                                 </div>
                                 <div class="table-responsive mt-3">
                                     <table class="table table-bordered">
-                                        <tr>
-                                            <th>Cost Value:</th>
-                                            <td class="text-end">${{ "{:,.2f}".format(valuation_results.cost_value) }}</td>
+                                        <tr class="table-warning">
+                                            <th>Final Cost Value:</th>
+                                            <td class="text-end fw-bold">${{ "{:,.2f}".format(valuation_results.cost_value) }}</td>
                                         </tr>
                                         <tr>
-                                            <th>Replacement Cost:</th>
-                                            <td class="text-end">${{ "{:,.2f}".format(valuation_results.replacement_cost) }}</td>
+                                            <th>Property Class:</th>
+                                            <td>{{ valuation_results.property_class }}</td>
                                         </tr>
                                         <tr>
-                                            <th>Depreciated Cost:</th>
-                                            <td class="text-end">${{ "{:,.2f}".format(valuation_results.depreciated_cost) }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Land Value:</th>
-                                            <td class="text-end">${{ "{:,.2f}".format(valuation_results.land_value) }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Depreciation Rate:</th>
-                                            <td class="text-end">{{ valuation_results.depreciation_rate * 100 }}%</td>
+                                            <th>Location:</th>
+                                            <td>{{ valuation_results.property_city }}</td>
                                         </tr>
                                         <tr>
                                             <th>Building Age:</th>
-                                            <td>{{ valuation_results.building_age }} years</td>
+                                            <td>{{ valuation_results.building_age }} years (built {{ 2025 - valuation_results.building_age }})</td>
                                         </tr>
                                         <tr>
-                                            <th>Building Area:</th>
-                                            <td>{{ "{:,.0f}".format(valuation_results.building_area) }} sq ft</td>
+                                            <th colspan="2" class="table-secondary">Cost Components</th>
                                         </tr>
                                         <tr>
-                                            <th>Land Area:</th>
-                                            <td>{{ "{:,.0f}".format(valuation_results.land_area) }} sq ft</td>
+                                            <th>Replacement Cost:</th>
+                                            <td class="text-end">${{ "{:,.2f}".format(valuation_results.replacement_cost) }} 
+                                                <small class="text-muted">({{ "{:,.0f}".format(valuation_results.building_area) }} sq ft @ ${{ "{:.2f}".format(valuation_results.replacement_cost_per_sqft) }}/sq ft)</small>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Depreciated Cost:</th>
+                                            <td class="text-end">${{ "{:,.2f}".format(valuation_results.depreciated_cost) }}
+                                                <small class="text-muted">({{ "{:.1f}".format(valuation_results.depreciation_rate * 100) }}% depreciation)</small>
+                                            </td>
+                                        </tr>
+                                        {% if 'functional_obsolescence' in valuation_results and valuation_results.functional_obsolescence > 0 %}
+                                        <tr>
+                                            <th>Functional Obsolescence:</th>
+                                            <td class="text-end">- ${{ "{:,.2f}".format(valuation_results.functional_obsolescence) }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        {% if 'external_obsolescence' in valuation_results and valuation_results.external_obsolescence > 0 %}
+                                        <tr>
+                                            <th>External Obsolescence:</th>
+                                            <td class="text-end">- ${{ "{:,.2f}".format(valuation_results.external_obsolescence) }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        <tr>
+                                            <th>Land Value:</th>
+                                            <td class="text-end">${{ "{:,.2f}".format(valuation_results.land_value) }}
+                                                <small class="text-muted">({{ "{:,.0f}".format(valuation_results.land_area) }} sq ft @ ${{ "{:.2f}".format(valuation_results.land_value_per_sqft) }}/sq ft)</small>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th colspan="2" class="table-secondary">Quality Factors</th>
+                                        </tr>
+                                        {% if 'quality_factor' in valuation_results %}
+                                        <tr>
+                                            <th>Quality Factor:</th>
+                                            <td class="text-end">{{ "{:.2f}".format(valuation_results.quality_factor) }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        <tr>
+                                            <th>Property Details:</th>
+                                            <td>
+                                                <div>Building Area: {{ "{:,.0f}".format(valuation_results.building_area) }} sq ft</div>
+                                                <div>Land Area: {{ "{:,.0f}".format(valuation_results.land_area) }} sq ft</div>
+                                            </td>
                                         </tr>
                                         <tr>
                                             <th>Confidence Score:</th>
-                                            <td>{{ valuation_results.confidence_score * 100 }}%</td>
+                                            <td class="text-end">{{ valuation_results.confidence_score * 100 }}%</td>
                                         </tr>
                                     </table>
                                 </div>
@@ -317,47 +350,82 @@
                                     </div>
                                     <div class="table-responsive mt-3">
                                         <table class="table table-bordered">
+                                            <tr class="table-success">
+                                                <th>Final Income Value:</th>
+                                                <td class="text-end fw-bold">${{ "{:,.2f}".format(valuation_results.income_value) }}</td>
+                                            </tr>
                                             <tr>
-                                                <th>Income Value:</th>
-                                                <td class="text-end">${{ "{:,.2f}".format(valuation_results.income_value) }}</td>
+                                                <th>Property Class:</th>
+                                                <td>{{ valuation_results.property_class }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Location:</th>
+                                                <td>{{ valuation_results.property_city }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Building Age:</th>
+                                                <td>{{ valuation_results.building_age }} years (built {{ 2025 - valuation_results.building_age }})</td>
+                                            </tr>
+                                            <tr>
+                                                <th colspan="2" class="table-secondary">Income Components</th>
                                             </tr>
                                             <tr>
                                                 <th>Potential Gross Income:</th>
-                                                <td class="text-end">${{ "{:,.2f}".format(valuation_results.potential_gross_income) }}</td>
+                                                <td class="text-end">${{ "{:,.2f}".format(valuation_results.potential_gross_income) }} 
+                                                    <small class="text-muted">({{ "{:,.0f}".format(valuation_results.building_area) }} sq ft @ ${{ "{:.2f}".format(valuation_results.rental_rate_per_sqft) }}/sq ft)</small>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th>Vacancy & Collection Loss:</th>
+                                                <td class="text-end">- ${{ "{:,.2f}".format(valuation_results.potential_gross_income * valuation_results.vacancy_rate) }}
+                                                    <small class="text-muted">({{ "{:.1f}".format(valuation_results.vacancy_rate * 100) }}% vacancy rate)</small>
+                                                </td>
                                             </tr>
                                             <tr>
                                                 <th>Effective Gross Income:</th>
                                                 <td class="text-end">${{ "{:,.2f}".format(valuation_results.effective_gross_income) }}</td>
                                             </tr>
                                             <tr>
+                                                <th>Operating Expenses:</th>
+                                                <td class="text-end">- ${{ "{:,.2f}".format(valuation_results.effective_gross_income * valuation_results.expense_ratio) }}
+                                                    <small class="text-muted">({{ "{:.1f}".format(valuation_results.expense_ratio * 100) }}% expense ratio)</small>
+                                                </td>
+                                            </tr>
+                                            <tr>
                                                 <th>Net Operating Income:</th>
                                                 <td class="text-end">${{ "{:,.2f}".format(valuation_results.net_operating_income) }}</td>
                                             </tr>
                                             <tr>
-                                                <th>Vacancy Rate:</th>
-                                                <td class="text-end">{{ valuation_results.vacancy_rate * 100 }}%</td>
-                                            </tr>
-                                            <tr>
-                                                <th>Expense Ratio:</th>
-                                                <td class="text-end">{{ valuation_results.expense_ratio * 100 }}%</td>
+                                                <th colspan="2" class="table-secondary">Capitalization</th>
                                             </tr>
                                             <tr>
                                                 <th>Capitalization Rate:</th>
-                                                <td class="text-end">{{ valuation_results.cap_rate * 100 }}%</td>
+                                                <td class="text-end">{{ "{:.2f}".format(valuation_results.cap_rate * 100) }}%</td>
                                             </tr>
                                             <tr>
-                                                <th>Building Area:</th>
-                                                <td>{{ "{:,.0f}".format(valuation_results.building_area) }} sq ft</td>
+                                                <th colspan="2" class="table-secondary">Adjustment Factors</th>
                                             </tr>
+                                            {% if 'age_factor' in valuation_results %}
                                             <tr>
-                                                <th>Rental Rate:</th>
-                                                <td>${{ "{:,.2f}".format(valuation_results.rental_rate_per_sqft) }} per sq ft</td>
+                                                <th>Age Factor:</th>
+                                                <td class="text-end">{{ "{:.2f}".format(valuation_results.age_factor) }}</td>
                                             </tr>
+                                            {% endif %}
+                                            {% if 'location_factor' in valuation_results %}
+                                            <tr>
+                                                <th>Location Factor:</th>
+                                                <td class="text-end">{{ "{:.2f}".format(valuation_results.location_factor) }}</td>
+                                            </tr>
+                                            {% endif %}
                                             <tr>
                                                 <th>Confidence Score:</th>
-                                                <td>{{ valuation_results.confidence_score * 100 }}%</td>
+                                                <td class="text-end">{{ "{:.1f}".format(valuation_results.confidence_score * 100) }}%</td>
                                             </tr>
                                         </table>
+                                    </div>
+                                    
+                                    <div class="alert alert-info mt-3">
+                                        <i class="fas fa-info-circle me-2"></i> The income approach is typically used for commercial and investment properties, and values a property based on its income-generating potential.
                                     </div>
                                 </div>
                             {% else %}
@@ -440,15 +508,370 @@
         {% if valuation_results %}
             {% if 'market_value' in valuation_results %}
                 // Create market approach chart
-                createValueComparisonChart('marketApproachChart', {{ valuation_results|tojson }});
+                createMarketApproachChart('marketApproachChart', {{ valuation_results|tojson }});
             {% elif 'cost_value' in valuation_results %}
                 // Create cost approach chart
-                createValueComparisonChart('costApproachChart', {{ valuation_results|tojson }});
+                createCostApproachChart('costApproachChart', {{ valuation_results|tojson }});
             {% elif 'income_value' in valuation_results and valuation_results.income_value %}
                 // Create income approach chart
-                createValueComparisonChart('incomeApproachChart', {{ valuation_results|tojson }});
+                createIncomeApproachChart('incomeApproachChart', {{ valuation_results|tojson }});
             {% endif %}
         {% endif %}
+        
+        // Setup form validation
+        const form = document.querySelector('.needs-validation');
+        if (form) {
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            });
+        }
+        
+        // Show class codes when property class is selected
+        const propertyClassSelect = document.getElementById('property_class');
+        const classCodesDisplay = document.getElementById('class_codes_display');
+        
+        if (propertyClassSelect && classCodesDisplay) {
+            propertyClassSelect.addEventListener('change', function() {
+                const selectedClass = this.value;
+                let codes = [];
+                
+                // Map class names to their codes (matching config.py)
+                const classCodes = {
+                    'Residential': ['R1', 'R2', 'R3', 'R4'],
+                    'Commercial': ['C1', 'C2', 'C3'],
+                    'Industrial': ['I1', 'I2', 'I3'],
+                    'Agricultural': ['A1', 'A2'],
+                    'Vacant Land': ['V1', 'V2'],
+                    'Public': ['P1', 'P2']
+                };
+                
+                if (selectedClass && classCodes[selectedClass]) {
+                    codes = classCodes[selectedClass];
+                    classCodesDisplay.textContent = `Includes codes: ${codes.join(', ')}`;
+                    classCodesDisplay.classList.remove('d-none');
+                } else {
+                    classCodesDisplay.classList.add('d-none');
+                }
+            });
+            
+            // Trigger on page load if a value is selected
+            if (propertyClassSelect.value) {
+                propertyClassSelect.dispatchEvent(new Event('change'));
+            }
+        }
     });
+    
+    // Chart creation functions
+    function createMarketApproachChart(canvasId, data) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        
+        // Extract data for chart
+        const marketValue = data.market_value;
+        const baseValue = data.base_value;
+        const adjustedValues = [];
+        
+        // Calculate different components of the final value
+        adjustedValues.push(baseValue); // Base value
+        
+        // Calculate the incremental value from each adjustment
+        let currentValue = baseValue;
+        
+        // Add market adjustment
+        const marketAdjustment = baseValue * data.market_multiplier - baseValue;
+        adjustedValues.push(currentValue + marketAdjustment);
+        currentValue += marketAdjustment;
+        
+        // Add location adjustment
+        const locationAdjustment = baseValue * data.location_multiplier - baseValue;
+        adjustedValues.push(currentValue + locationAdjustment);
+        currentValue += locationAdjustment;
+        
+        // Add age adjustment if present
+        if (data.age_adjustment) {
+            const ageAdjustment = baseValue * data.age_adjustment - baseValue;
+            adjustedValues.push(currentValue + ageAdjustment);
+            currentValue += ageAdjustment;
+        }
+        
+        // Add size adjustment if present
+        if (data.size_adjustment) {
+            const sizeAdjustment = baseValue * data.size_adjustment - baseValue;
+            adjustedValues.push(currentValue + sizeAdjustment);
+            currentValue += sizeAdjustment;
+        }
+        
+        // Add feature adjustment if present
+        if (data.feature_adjustment) {
+            const featureAdjustment = baseValue * data.feature_adjustment - baseValue;
+            adjustedValues.push(currentValue + featureAdjustment);
+        }
+        
+        // Create labels based on available adjustments
+        const labels = ['Base Value', 'Market Adjustment', 'Location Adjustment'];
+        if (data.age_adjustment) labels.push('Age Adjustment');
+        if (data.size_adjustment) labels.push('Size Adjustment');
+        if (data.feature_adjustment) labels.push('Feature Adjustment');
+        
+        // Create chart
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Value Progression',
+                    data: adjustedValues,
+                    borderColor: 'rgba(0, 123, 255, 1)',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(0, 123, 255, 1)',
+                    pointRadius: 4,
+                    fill: true,
+                    lineTension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'Property Value ($)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += '$' + context.parsed.y.toLocaleString();
+                                }
+                                return label;
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Market Approach Value Progression'
+                    }
+                }
+            }
+        });
+    }
+    
+    function createCostApproachChart(canvasId, data) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        
+        // Extract data for chart
+        const costValue = data.cost_value;
+        const replacementCost = data.replacement_cost;
+        const depreciation = replacementCost - data.depreciated_cost;
+        const landValue = data.land_value;
+        const functionalObsolescence = data.functional_obsolescence || 0;
+        const externalObsolescence = data.external_obsolescence || 0;
+        
+        // Create chart
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Components'],
+                datasets: [
+                    {
+                        label: 'Replacement Cost',
+                        data: [replacementCost],
+                        backgroundColor: 'rgba(255, 193, 7, 0.6)',
+                        borderColor: 'rgba(255, 193, 7, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Depreciation',
+                        data: [-depreciation],
+                        backgroundColor: 'rgba(220, 53, 69, 0.6)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Functional Obsolescence',
+                        data: [-functionalObsolescence],
+                        backgroundColor: 'rgba(253, 126, 20, 0.6)',
+                        borderColor: 'rgba(253, 126, 20, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'External Obsolescence',
+                        data: [-externalObsolescence],
+                        backgroundColor: 'rgba(108, 117, 125, 0.6)',
+                        borderColor: 'rgba(108, 117, 125, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Land Value',
+                        data: [landValue],
+                        backgroundColor: 'rgba(40, 167, 69, 0.6)',
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        stacked: true,
+                        title: {
+                            display: true,
+                            text: 'Property Value ($)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    },
+                    x: {
+                        stacked: true
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    // Show absolute value for negative components
+                                    const value = Math.abs(context.parsed.y);
+                                    label += '$' + value.toLocaleString();
+                                }
+                                return label;
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Cost Approach Components'
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    }
+    
+    function createIncomeApproachChart(canvasId, data) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        
+        // Extract data for chart
+        const potentialGrossIncome = data.potential_gross_income;
+        const vacancyLoss = potentialGrossIncome * data.vacancy_rate;
+        const effectiveGrossIncome = data.effective_gross_income;
+        const operatingExpenses = effectiveGrossIncome * data.expense_ratio;
+        const netOperatingIncome = data.net_operating_income;
+        const capRate = data.cap_rate;
+        const incomeValue = data.income_value;
+        
+        // Create waterfall chart data
+        const labels = ['Potential Gross Income', 'Vacancy Loss', 'Effective Gross Income', 'Operating Expenses', 'Net Operating Income'];
+        const values = [potentialGrossIncome, -vacancyLoss, effectiveGrossIncome, -operatingExpenses, netOperatingIncome];
+        const colors = [
+            'rgba(40, 167, 69, 0.7)', // Potential Gross Income (green)
+            'rgba(220, 53, 69, 0.7)', // Vacancy Loss (red)
+            'rgba(23, 162, 184, 0.7)', // Effective Gross Income (teal)
+            'rgba(220, 53, 69, 0.7)', // Operating Expenses (red)
+            'rgba(0, 123, 255, 0.7)'  // Net Operating Income (blue)
+        ];
+        const borderColors = [
+            'rgba(40, 167, 69, 1)',
+            'rgba(220, 53, 69, 1)',
+            'rgba(23, 162, 184, 1)',
+            'rgba(220, 53, 69, 1)',
+            'rgba(0, 123, 255, 1)'
+        ];
+        
+        // Create chart
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: colors,
+                    borderColor: borderColors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'Amount ($)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.raw !== null) {
+                                    // Show absolute value for negative components
+                                    const value = Math.abs(context.raw);
+                                    label += '$' + value.toLocaleString();
+                                }
+                                return label;
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Income Approach Components'
+                    },
+                    subtitle: {
+                        display: true,
+                        text: `Cap Rate: ${(capRate * 100).toFixed(2)}% → Value: $${incomeValue.toLocaleString()}`,
+                        padding: {
+                            bottom: 10
+                        }
+                    }
+                }
+            }
+        });
+    }
 </script>
 {% endblock %}
