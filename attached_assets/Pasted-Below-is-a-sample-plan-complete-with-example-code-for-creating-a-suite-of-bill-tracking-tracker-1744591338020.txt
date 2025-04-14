@@ -1,0 +1,366 @@
+Below is a sample plan – complete with example code – for creating a suite of bill‐tracking “trackers” that pull data from our identified free sources. These trackers can be built as separate modules (or microservices) that feed data into a central dashboard for the Benton County Auditor’s Office.
+
+Each tracker is designed to fetch data from one source:
+
+⸻
+
+1. Washington State Legislature Tracker (Using RSS Feeds)
+
+Overview:
+This tracker subscribes to RSS feeds from the official Washington State Legislature website to monitor updates on bills related to property assessment and taxation.
+
+Example Python Code:
+
+import feedparser
+import time
+import sqlite3
+
+# Define RSS feed URLs (you can create a list for different topics or individual bills)
+rss_feeds = [
+    "https://leg.wa.gov/bills-meetings-and-session/bills/rss.xml",  # General feed (example)
+    # Add topic-specific feeds as needed, e.g., bills tagged with "property tax"
+]
+
+def init_db():
+    conn = sqlite3.connect('state_legislation.db')
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS bills (
+            guid TEXT PRIMARY KEY,
+            title TEXT,
+            link TEXT,
+            published TEXT,
+            summary TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+def fetch_and_store(feed_url):
+    d = feedparser.parse(feed_url)
+    conn = sqlite3.connect('state_legislation.db')
+    c = conn.cursor()
+    for entry in d.entries:
+        try:
+            c.execute('''
+                INSERT INTO bills (guid, title, link, published, summary)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (entry.get("id", entry.get("guid")),
+                  entry.get("title", "No Title"),
+                  entry.get("link", ""),
+                  entry.get("published", ""),
+                  entry.get("summary", "")))
+        except sqlite3.IntegrityError:
+            # Bill already exists, update if needed
+            c.execute('''
+                UPDATE bills 
+                SET title=?, link=?, published=?, summary=? 
+                WHERE guid=?
+            ''', (entry.get("title", "No Title"),
+                  entry.get("link", ""),
+                  entry.get("published", ""),
+                  entry.get("summary", ""),
+                  entry.get("id", entry.get("guid"))))
+    conn.commit()
+    conn.close()
+
+def run_rss_tracker():
+    init_db()
+    while True:
+        for feed in rss_feeds:
+            fetch_and_store(feed)
+        print("Feeds updated. Sleeping for 30 minutes...")
+        time.sleep(1800)  # Wait 30 minutes before checking again
+
+if __name__ == "__main__":
+    run_rss_tracker()
+
+This code creates a local SQLite database to store bill entries from the Legislature’s RSS feeds. It can be scheduled to run continuously (or via a cron job on a server such as Replit).
+
+References: Washington State Legislature RSS Feeds [ ￼].
+
+⸻
+
+2. Open States Tracker (Using API)
+
+Overview:
+Leverage the Open States API to pull current Washington State legislative data based on keywords (e.g., “property tax,” “assessment”).
+
+Example Python Code:
+
+import requests
+import sqlite3
+from datetime import datetime
+
+API_KEY = "YOUR_OPENSTATES_API_KEY"
+BASE_URL = "https://v3.openstates.org/"
+
+def init_db():
+    conn = sqlite3.connect('openstates.db')
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS bills (
+            bill_id TEXT PRIMARY KEY,
+            title TEXT,
+            subject TEXT,
+            updated_at TEXT,
+            full_text TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+def fetch_openstates_bills(keyword):
+    params = {
+        "jurisdiction": "Washington",
+        "q": keyword,
+        "apikey": API_KEY,
+        "per_page": 20
+    }
+    url = BASE_URL + "bills"
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        return response.json().get("results", [])
+    else:
+        print("Error:", response.status_code)
+        return []
+
+def store_bill(bill):
+    conn = sqlite3.connect('openstates.db')
+    c = conn.cursor()
+    try:
+        c.execute('''
+            INSERT INTO bills (bill_id, title, subject, updated_at, full_text)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (bill["id"],
+              bill.get("title", "No Title"),
+              ", ".join(bill.get("subjects", [])),
+              bill.get("updated_at", datetime.now().isoformat()),
+              bill.get("full_text", "No Text")))
+    except sqlite3.IntegrityError:
+        c.execute('''
+            UPDATE bills 
+            SET title=?, subject=?, updated_at=?, full_text=?
+            WHERE bill_id=?
+        ''', (bill.get("title", "No Title"),
+              ", ".join(bill.get("subjects", [])),
+              bill.get("updated_at", datetime.now().isoformat()),
+              bill.get("full_text", "No Text"),
+              bill["id"]))
+    conn.commit()
+    conn.close()
+
+def run_openstates_tracker(keyword):
+    init_db()
+    bills = fetch_openstates_bills(keyword)
+    for bill in bills:
+        store_bill(bill)
+    print(f"Fetched and stored {len(bills)} bills related to '{keyword}'.")
+
+if __name__ == "__main__":
+    run_openstates_tracker("property tax")
+
+This code uses the Open States API to search for bills in Washington containing a specific keyword. It then stores or updates the results in a SQLite database. This can be further enhanced with scheduling on Replit.
+
+References: Open States [ ￼].
+
+⸻
+
+3. LegiScan Tracker (Using Free API Tier)
+
+Overview:
+Use LegiScan’s free API to monitor legislative activity. (LegiScan offers a RESTful API with a monthly query limit.)
+
+Example Python Code:
+
+import requests
+import sqlite3
+from datetime import datetime
+
+LEGISCAN_API_KEY = "YOUR_LEGISCAN_API_KEY"
+LEGISCAN_BASE_URL = "https://api.legiscan.com/"
+
+def init_db():
+    conn = sqlite3.connect('legiscan.db')
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS bills (
+            bill_id INTEGER PRIMARY KEY,
+            title TEXT,
+            status TEXT,
+            last_action TEXT,
+            last_updated TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+def fetch_legiscan_bills(state="WA", keyword="property tax"):
+    params = {
+        "key": LEGISCAN_API_KEY,
+        "op": "getSearch",
+        "state": state,
+        "query": keyword
+    }
+    response = requests.get(LEGISCAN_BASE_URL, params=params)
+    if response.status_code == 200:
+        return response.json().get("searchresult", [])
+    else:
+        print("Error:", response.status_code)
+        return []
+
+def store_legiscan_bill(bill):
+    conn = sqlite3.connect('legiscan.db')
+    c = conn.cursor()
+    try:
+        c.execute('''
+            INSERT INTO bills (bill_id, title, status, last_action, last_updated)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (bill.get("bill_id"), bill.get("title"), bill.get("status"), bill.get("last_action"), datetime.now().isoformat()))
+    except sqlite3.IntegrityError:
+        c.execute('''
+            UPDATE bills 
+            SET title=?, status=?, last_action=?, last_updated=?
+            WHERE bill_id=?
+        ''', (bill.get("title"), bill.get("status"), bill.get("last_action"), datetime.now().isoformat(), bill.get("bill_id")))
+    conn.commit()
+    conn.close()
+
+def run_legiscan_tracker():
+    init_db()
+    bills = fetch_legiscan_bills()
+    for bill in bills:
+        store_legiscan_bill(bill)
+    print(f"Fetched and stored {len(bills)} bills from LegiScan.")
+
+if __name__ == "__main__":
+    run_legiscan_tracker()
+
+This script pulls bill data from LegiScan’s API (using a free API key) and stores the relevant fields in a SQLite database. Adjust the query or parameters as needed for more focused tracking.
+
+References: LegiScan Free API options [ ￼].
+
+⸻
+
+4. Local Document Tracker for Benton County (Auditor’s Office Resources)
+
+Overview:
+For local legislation, we can use the Benton County Auditor’s online document search as a data source. This tracker would periodically download new documents (ordinances, recorded resolutions, etc.) that are published locally.
+
+Example Python Code:
+
+import requests
+import sqlite3
+from bs4 import BeautifulSoup
+
+# Example URL for Benton County Recorded Documents (modify as needed)
+BASE_URL = "https://www.bentoncountywa.gov/pview.aspx?id=55341"
+
+def init_db():
+    conn = sqlite3.connect('benton_local.db')
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS local_docs (
+            doc_id TEXT PRIMARY KEY,
+            title TEXT,
+            url TEXT,
+            published_date TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+def fetch_local_documents():
+    response = requests.get(BASE_URL)
+    if response.status_code != 200:
+        print("Error fetching local docs")
+        return []
+    soup = BeautifulSoup(response.text, "html.parser")
+    # Example: parse document listings – the actual HTML structure may vary
+    docs = []
+    for div in soup.find_all("div", class_="documentItem"):
+        title = div.find("a").get_text(strip=True)
+        url = div.find("a")["href"]
+        doc_id = url.split("id=")[-1]
+        pub_date = div.find("span", class_="pubDate").get_text(strip=True) if div.find("span", class_="pubDate") else ""
+        docs.append({"doc_id": doc_id, "title": title, "url": url, "published_date": pub_date})
+    return docs
+
+def store_local_doc(doc):
+    conn = sqlite3.connect('benton_local.db')
+    c = conn.cursor()
+    try:
+        c.execute('''
+            INSERT INTO local_docs (doc_id, title, url, published_date)
+            VALUES (?, ?, ?, ?)
+        ''', (doc["doc_id"], doc["title"], doc["url"], doc["published_date"]))
+    except sqlite3.IntegrityError:
+        # Update if needed
+        c.execute('''
+            UPDATE local_docs
+            SET title=?, url=?, published_date=?
+            WHERE doc_id=?
+        ''', (doc["title"], doc["url"], doc["published_date"], doc["doc_id"]))
+    conn.commit()
+    conn.close()
+
+def run_local_tracker():
+    init_db()
+    docs = fetch_local_documents()
+    for doc in docs:
+        store_local_doc(doc)
+    print(f"Fetched and stored {len(docs)} local documents.")
+
+if __name__ == "__main__":
+    run_local_tracker()
+
+This code uses the Python package BeautifulSoup to scrape the local document search page from the Benton County Auditor’s website. (Note: You will likely need to adjust the selectors based on the actual HTML structure.)
+
+References: Benton County Auditor’s Document Search [ ￼].
+
+⸻
+
+Bringing It All Together: Central Dashboard
+
+Once each tracker saves data into its respective database, you can build a central dashboard (using a web framework like Flask or Node.js) that aggregates the data. For example, you might create an endpoint that queries all three databases (state, Open States, LegiScan, and local documents) and displays a unified list of tracked items along with their statuses.
+
+Example Flask Route (Simplified):
+
+from flask import Flask, render_template
+import sqlite3
+
+app = Flask(__name__)
+
+def query_db(db_file, query):
+    conn = sqlite3.connect(db_file)
+    c = conn.cursor()
+    c.execute(query)
+    results = c.fetchall()
+    conn.close()
+    return results
+
+@app.route("/")
+def dashboard():
+    state_bills = query_db('state_legislation.db', "SELECT title, published FROM bills")
+    openstates_bills = query_db('openstates.db', "SELECT title, updated_at FROM bills")
+    legiscan_bills = query_db('legiscan.db', "SELECT title, status FROM bills")
+    local_docs = query_db('benton_local.db', "SELECT title, published_date FROM local_docs")
+    return render_template("dashboard.html", state_bills=state_bills,
+                           openstates_bills=openstates_bills,
+                           legiscan_bills=legiscan_bills,
+                           local_docs=local_docs)
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
+Your HTML dashboard can then list all items, allow filtering by source or keyword, and even provide links to the full texts or document pages.
+
+⸻
+
+Final Thoughts
+
+These sample trackers use Python and SQLite for simplicity, but they can be expanded with more robust databases and integrated with tools available on Replit. Using Replit’s built-in cron (scheduler) features and its collaborative coding environment, you can deploy these trackers and the dashboard quickly, then iterate based on user feedback.
+
+This integrated solution leverages official state resources, open data platforms, and local document searches to provide a comprehensive tracking system for the Benton County Auditor’s Office.
+
+References include the Washington State Legislature RSS guide [ ￼], Open States [ ￼], LegiScan [ ￼], and Benton County Auditor’s resources [ ￼].

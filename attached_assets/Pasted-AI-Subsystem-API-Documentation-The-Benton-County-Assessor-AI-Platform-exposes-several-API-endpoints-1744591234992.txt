@@ -1,0 +1,117 @@
+AI Subsystem API Documentation
+The Benton County Assessor AI Platform exposes several API endpoints to interact with the AI capabilities. This document outlines the available endpoints and their usage.
+
+Status Endpoint
+Used to check the status of the AI system, including registered agents and availability of AI providers.
+
+GET /ai/status
+Parameters
+Parameter	Type	Description
+detailed	boolean	If true, returns detailed status information (optional, default: false)
+Response
+Simple format (default):
+
+{
+  "initialized": true,
+  "anthropic_available": true,
+  "agents": ["property_impact_analyzer", "data_validation", "valuation", "user_interaction"]
+}
+Detailed format (with detailed=true):
+
+{
+  "initialized": true,
+  "anthropic_available": true,
+  "openai_available": false,
+  "agents": ["property_impact_analyzer", "data_validation", "valuation", "user_interaction"],
+  "agent_count": 4,
+  "mcp_available": true,
+  "message_handlers": ["request.property.impact", "request.data.validate", "request.data.quality.check", "request.property.value", "request.batch.valuation", "request.valuation.factors", "request.user.query", "request.user.action", "request.user.help"],
+  "message_handler_count": 9,
+  "missing_agents": [],
+  "all_required_agents_available": true
+}
+Property Impact Analysis
+Used to analyze how legislation impacts property assessments.
+
+POST /ai/property-impact
+Request Body
+{
+  "bill_text": "Full text of the bill",
+  "bill_title": "Title of the bill",
+  "property_class": "Property class",  // Optional
+  "property_value": 250000.00,  // Optional
+  "county": "Benton"  // Optional
+}
+Response
+{
+  "impact_analysis": "Detailed analysis of the property impact...",
+  "property_value_change": "+2.5%",
+  "assessment_implications": ["Implication 1", "Implication 2"],
+  "recommendations": ["Recommendation 1", "Recommendation 2"],
+  "confidence_level": "high"
+}
+Bill Analysis
+Used to analyze a bill for key insights.
+
+POST /ai/analyze
+Request Body
+{
+  "bill_text": "Full text of the bill",
+  "bill_title": "Title of the bill",
+  "bill_source": "Source of the bill",
+  "focus_areas": ["Area1", "Area2"]  // Optional focus areas
+}
+Bill Summarization
+Used to generate a summary of a bill.
+
+POST /ai/summarize
+Request Body
+{
+  "bill_text": "Full text of the bill",
+  "bill_title": "Title of the bill",
+  "summary_type": "general", // Optional: general, technical, public
+  "length": "medium"  // Optional: short, medium, long
+}
+Entity Extraction
+Used to extract entities (people, organizations, etc.) from a bill.
+
+POST /ai/extract-entities
+Request Body
+{
+  "bill_text": "Full text of the bill",
+  "bill_title": "Title of the bill",
+  "entity_types": ["organization", "person"] // Optional entity types to focus on
+}
+Bill Categorization
+Used to categorize a bill into relevant topics.
+
+POST /ai/categorize
+Request Body
+{
+  "bill_text": "Full text of the bill",
+  "bill_title": "Title of the bill",
+  "custom_categories": ["Category1", "Category2"] // Optional custom categories
+}
+Impact Assessment
+Used to assess the general impact of a bill on various aspects.
+
+POST /ai/impact-assessment
+Request Body
+{
+  "bill_text": "Full text of the bill",
+  "bill_title": "Title of the bill",
+  "impact_areas": ["economic", "social"] // Optional impact areas to focus on
+  "communities": ["Community1", "Community2"] // Optional communities to focus on
+}
+Error Handling
+All endpoints return appropriate HTTP status codes:
+
+200: Success
+400: Bad request (missing required fields)
+500: Server error
+503: AI system not initialized
+Error responses include a helpful error message:
+
+{
+  "error": "Description of the error"
+}
