@@ -8,7 +8,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_required, current_user, login_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import User, Property, Assessment, LegislativeUpdate, AuditLog, db
-from services.trackers import get_all_tracked_bills, search_bills, get_bill_by_id
+from services.bill_search_service import get_all_tracked_bills, search_bills, get_bill_by_id
 from services.bill_analysis_service import analyze_tracked_bill
 
 web_bp = Blueprint('web', __name__)

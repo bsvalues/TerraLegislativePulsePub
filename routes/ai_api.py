@@ -15,10 +15,9 @@ from services.bill_analysis_service import (
     analyze_bill_impact, 
     analyze_tracked_bill,
     summarize_bill,
-    extract_entities,
-    search_relevant_bills
+    extract_entities
 )
-from services.trackers import get_all_tracked_bills, search_bills, get_bill_by_id
+from services.bill_search_service import get_all_tracked_bills, search_bills, get_bill_by_id, search_relevant_bills
 
 logger = logging.getLogger(__name__)
 
