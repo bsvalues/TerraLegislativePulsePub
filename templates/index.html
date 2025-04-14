@@ -4,11 +4,38 @@
 
 {% block content %}
 <div class="px-4 py-5 text-center position-relative" style="min-height: 500px; overflow: hidden;">
-    <!-- Background image of Washington State Capitol -->
-    <div class="position-absolute top-0 start-0 end-0 bottom-0" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/6/6a/Washington_State_Capitol_Building%2C_Olympia%2C_Washington.jpg'); background-size: cover; background-position: center; opacity: 0.7; filter: brightness(0.8); z-index: -2;"></div>
+    <!-- Capitol dome pattern background (stylized representation) -->
+    <div class="position-absolute top-0 start-0 end-0 bottom-0" style="background-color: #1a3a5f; background-image: 
+    linear-gradient(30deg, #254b76 12%, transparent 12.5%, transparent 87%, #254b76 87.5%, #254b76),
+    linear-gradient(150deg, #254b76 12%, transparent 12.5%, transparent 87%, #254b76 87.5%, #254b76),
+    linear-gradient(30deg, #254b76 12%, transparent 12.5%, transparent 87%, #254b76 87.5%, #254b76),
+    linear-gradient(150deg, #254b76 12%, transparent 12.5%, transparent 87%, #254b76 87.5%, #254b76),
+    linear-gradient(60deg, #4774aa 25%, transparent 25.5%, transparent 75%, #4774aa 75%, #4774aa), 
+    linear-gradient(60deg, #4774aa 25%, transparent 25.5%, transparent 75%, #4774aa 75%, #4774aa);
+    background-size: 80px 140px;
+    background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
+    opacity: 0.5;
+    z-index: -2;"></div>
     
     <!-- Background overlay gradient -->
-    <div class="position-absolute top-0 start-0 end-0 bottom-0" style="background: radial-gradient(ellipse at center, rgba(13, 110, 253, 0.1) 0%, rgba(33, 37, 41, 0.85) 100%); z-index: -1;"></div>
+    <div class="position-absolute top-0 start-0 end-0 bottom-0" style="background: radial-gradient(ellipse at center, rgba(13, 110, 253, 0.2) 0%, rgba(33, 37, 41, 0.75) 100%); z-index: -1;"></div>
+    
+    <!-- Background capitol dome silhouette (symbolic representation) -->
+    <div class="position-absolute top-0 start-0 end-0 bottom-0 d-flex justify-content-center" style="z-index: -1; opacity: 0.4; overflow: hidden;">
+        <!-- Main dome -->
+        <div style="width: 600px; height: 400px; margin-top: -100px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; background: radial-gradient(circle at center 80%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.2) 70%, transparent 100%);"></div>
+    </div>
+    
+    <!-- Capitol columns (symbolic) -->
+    <div class="position-absolute top-0 start-0 end-0 bottom-0 d-flex justify-content-center" style="z-index: -1; opacity: 0.15;">
+        <div class="d-flex" style="margin-top: 300px; height: 200px; width: 500px;">
+            <div style="flex: 1; border-radius: 10px 10px 0 0; background-color: rgba(255, 255, 255, 0.8); margin: 0 10px;"></div>
+            <div style="flex: 1; border-radius: 10px 10px 0 0; background-color: rgba(255, 255, 255, 0.8); margin: 0 10px;"></div>
+            <div style="flex: 1; border-radius: 10px 10px 0 0; background-color: rgba(255, 255, 255, 0.8); margin: 0 10px;"></div>
+            <div style="flex: 1; border-radius: 10px 10px 0 0; background-color: rgba(255, 255, 255, 0.8); margin: 0 10px;"></div>
+            <div style="flex: 1; border-radius: 10px 10px 0 0; background-color: rgba(255, 255, 255, 0.8); margin: 0 10px;"></div>
+        </div>
+    </div>
     
     <div class="position-relative py-5" style="z-index: 1;">
         <div class="bg-dark bg-opacity-75 mx-auto p-4 rounded-4" style="max-width: 800px;">
