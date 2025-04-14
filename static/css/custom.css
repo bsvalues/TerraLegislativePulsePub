@@ -48,10 +48,10 @@
 
 /* Landing page styles */
 .landing-hero {
-    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
-                url('../images/capitol.jpg');
+    background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(23, 43, 77, 0.5)),
+                url('../images/wa_capitol.png');
     background-size: cover;
-    background-position: center;
+    background-position: center top;
     min-height: 350px;
     color: white;
     display: flex;
