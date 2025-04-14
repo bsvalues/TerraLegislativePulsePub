@@ -3,99 +3,201 @@
 {% block title %}Benton County Assessor AI Platform - Home{% endblock %}
 
 {% block content %}
-<div class="px-4 py-5 text-center">
-    <h1 class="display-5 fw-bold text-primary">Benton County Assessor</h1>
-    <h2 class="display-6 mb-4">AI-Powered Legislative Analysis Platform</h2>
-    <div class="col-lg-8 mx-auto">
-        <p class="lead mb-4">
-            Streamline property assessment processes with advanced artificial intelligence.
-            Track legislative changes, analyze impacts, and ensure accurate property valuations.
-        </p>
-        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-            {% if current_user.is_authenticated %}
-            <a href="{{ url_for('web.dashboard') }}" class="btn btn-primary btn-lg px-4 gap-3">
-                <i class="bi bi-speedometer2 me-2"></i> Go to Dashboard
-            </a>
-            {% else %}
-            <a href="{{ url_for('web.login') }}" class="btn btn-primary btn-lg px-4 gap-3">
-                <i class="bi bi-box-arrow-in-right me-2"></i> Login
-            </a>
-            {% endif %}
+<div class="px-4 py-5 text-center position-relative">
+    <div class="position-absolute top-0 start-0 end-0 bottom-0" style="background: radial-gradient(ellipse at center, rgba(13, 110, 253, 0.15) 0%, rgba(13, 110, 253, 0) 70%); z-index: -1;"></div>
+    <div class="position-relative" style="z-index: 1;">
+        <h1 class="display-4 fw-bold text-primary mb-0" style="text-shadow: 0 2px 10px rgba(13, 110, 253, 0.5);">Benton County Assessor</h1>
+        <div class="d-flex justify-content-center my-2">
+            <div class="border-bottom border-primary opacity-75" style="width: 100px;"></div>
         </div>
-    </div>
-</div>
-
-<div class="container px-4 py-5">
-    <h2 class="pb-2 border-bottom">Key Features</h2>
-    <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
-        <div class="col d-flex align-items-start">
-            <div class="bg-primary bg-gradient rounded-3 text-white p-3 me-3">
-                <i class="bi bi-file-text fs-2"></i>
-            </div>
-            <div>
-                <h3 class="fs-4">Legislative Tracking</h3>
-                <p>Monitor bills from Washington State Legislature, OpenStates, LegiScan, and local sources in real-time.</p>
-            </div>
-        </div>
-        
-        <div class="col d-flex align-items-start">
-            <div class="bg-primary bg-gradient rounded-3 text-white p-3 me-3">
-                <i class="bi bi-cpu fs-2"></i>
-            </div>
-            <div>
-                <h3 class="fs-4">AI-Powered Analysis</h3>
-                <p>Leverage advanced AI to analyze bill impacts, generate summaries, and extract key entities.</p>
-            </div>
-        </div>
-        
-        <div class="col d-flex align-items-start">
-            <div class="bg-primary bg-gradient rounded-3 text-white p-3 me-3">
-                <i class="bi bi-house-door fs-2"></i>
-            </div>
-            <div>
-                <h3 class="fs-4">Property Impact Assessment</h3>
-                <p>Evaluate how legislative changes affect property assessments, valuations, and tax calculations.</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="container px-4 py-5 bg-body-tertiary rounded-3">
-    <div class="row align-items-center g-5 py-3">
-        <div class="col-lg-7">
-            <h2 class="display-6 fw-bold lh-1 mb-3">Multi-Source Intelligence</h2>
-            <p class="lead">
-                Our platform aggregates and analyzes legislative data from multiple authoritative sources to provide
-                comprehensive insights for property assessment professionals.
+        <h2 class="display-6 mb-4 text-gradient" style="background: linear-gradient(90deg, #0d6efd, #6610f2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">AI-Powered Legislative Analysis Platform</h2>
+        <div class="col-lg-7 mx-auto">
+            <p class="lead mb-4">
+                Streamline property assessment processes with advanced artificial intelligence.
+                Track legislative changes, analyze impacts, and ensure accurate property valuations.
             </p>
-            <ul class="list-unstyled">
-                <li class="d-flex align-items-center mb-2">
-                    <i class="bi bi-check-circle-fill text-success me-2"></i> Washington State Legislature
-                </li>
-                <li class="d-flex align-items-center mb-2">
-                    <i class="bi bi-check-circle-fill text-success me-2"></i> OpenStates API
-                </li>
-                <li class="d-flex align-items-center mb-2">
-                    <i class="bi bi-check-circle-fill text-success me-2"></i> LegiScan API
-                </li>
-                <li class="d-flex align-items-center mb-2">
-                    <i class="bi bi-check-circle-fill text-success me-2"></i> Local Government Documents
-                </li>
-            </ul>
+            <div class="d-grid gap-3 d-sm-flex justify-content-sm-center mt-4">
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('web.dashboard') }}" class="btn btn-primary btn-lg px-4 py-3 gap-3" style="box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);">
+                    <i class="bi bi-speedometer2 me-2"></i> Go to Dashboard
+                </a>
+                {% else %}
+                <a href="{{ url_for('web.login') }}" class="btn btn-primary btn-lg px-4 py-3 gap-3" style="box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);">
+                    <i class="bi bi-box-arrow-in-right me-2"></i> Login
+                </a>
+                {% endif %}
+                <a href="#features" class="btn btn-outline-light btn-lg px-4 py-3">
+                    <i class="bi bi-info-circle me-2"></i> Learn More
+                </a>
+            </div>
         </div>
-        <div class="col-lg-5">
-            <div class="card p-4 text-center shadow-lg">
-                <h3 class="card-title mb-4">Quick Start</h3>
-                <div class="list-group list-group-flush text-start">
-                    <a href="{{ url_for('web.login') }}" class="list-group-item list-group-item-action">
-                        <i class="bi bi-1-circle-fill me-2"></i> Log in to your account
+    </div>
+</div>
+
+<div class="container px-4 py-5" id="features">
+    <div class="text-center mb-5">
+        <h2 class="display-5 fw-bold">Key Features</h2>
+        <div class="d-flex justify-content-center my-2">
+            <div class="border-bottom border-primary opacity-75" style="width: 80px;"></div>
+        </div>
+        <p class="lead text-muted">Powerful tools designed for property assessment professionals</p>
+    </div>
+    
+    <div class="row g-4 py-3 row-cols-1 row-cols-lg-3">
+        <div class="col">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body p-4 text-center">
+                    <div class="feature-icon bg-primary bg-gradient rounded-circle text-white p-3 mb-4 mx-auto" 
+                         style="width: 65px; height: 65px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(13, 110, 253, 0.3);">
+                        <i class="bi bi-file-text fs-2"></i>
+                    </div>
+                    <h3 class="fs-4 fw-bold mb-3">Legislative Tracking</h3>
+                    <p class="text-muted mb-0">Monitor bills from Washington State Legislature, OpenStates, LegiScan, and local sources in real-time.</p>
+                </div>
+                <div class="card-footer border-0 bg-transparent p-3">
+                    <a href="{{ url_for('web.bills') }}" class="btn btn-sm btn-outline-primary d-block">
+                        <i class="bi bi-arrow-right me-1"></i> View Bills
                     </a>
-                    <a href="{{ url_for('web.bills') }}" class="list-group-item list-group-item-action">
-                        <i class="bi bi-2-circle-fill me-2"></i> Browse tracked legislation
+                </div>
+            </div>
+        </div>
+        
+        <div class="col">
+            <div class="card h-100 border-0 shadow-sm card-glow">
+                <div class="card-body p-4 text-center">
+                    <div class="feature-icon bg-primary bg-gradient rounded-circle text-white p-3 mb-4 mx-auto" 
+                         style="width: 65px; height: 65px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(13, 110, 253, 0.3);">
+                        <i class="bi bi-cpu fs-2"></i>
+                    </div>
+                    <h3 class="fs-4 fw-bold mb-3">AI-Powered Analysis</h3>
+                    <p class="text-muted mb-0">Leverage advanced AI to analyze bill impacts, generate summaries, and extract key entities.</p>
+                </div>
+                <div class="card-footer border-0 bg-transparent p-3">
+                    <a href="{{ url_for('web.bills') }}" class="btn btn-sm btn-outline-primary d-block">
+                        <i class="bi bi-arrow-right me-1"></i> Analyze Bills
                     </a>
-                    <a href="{{ url_for('web.property_impact') }}" class="list-group-item list-group-item-action">
-                        <i class="bi bi-3-circle-fill me-2"></i> Analyze property impacts
+                </div>
+            </div>
+        </div>
+        
+        <div class="col">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body p-4 text-center">
+                    <div class="feature-icon bg-primary bg-gradient rounded-circle text-white p-3 mb-4 mx-auto" 
+                         style="width: 65px; height: 65px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(13, 110, 253, 0.3);">
+                        <i class="bi bi-house-door fs-2"></i>
+                    </div>
+                    <h3 class="fs-4 fw-bold mb-3">Property Impact Assessment</h3>
+                    <p class="text-muted mb-0">Evaluate how legislative changes affect property assessments, valuations, and tax calculations.</p>
+                </div>
+                <div class="card-footer border-0 bg-transparent p-3">
+                    <a href="{{ url_for('web.property_impact') }}" class="btn btn-sm btn-outline-primary d-block">
+                        <i class="bi bi-arrow-right me-1"></i> Analyze Impact
                     </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid px-0 my-5 position-relative">
+    <div class="bg-primary bg-gradient py-5" style="position: relative; overflow: hidden;">
+        <div class="position-absolute top-0 end-0 bottom-0 start-0" style="background-image: url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"0.1\"%3E%3Cpath d=\"M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E'); opacity: 0.5;"></div>
+        <div class="container py-4 position-relative">
+            <div class="row align-items-center">
+                <div class="col-lg-7 text-white">
+                    <h2 class="display-5 fw-bold mb-3" style="text-shadow: 0 2px 4px rgba(0,0,0,0.2);">Multi-Source Intelligence</h2>
+                    <p class="lead mb-4">
+                        Our platform aggregates and analyzes legislative data from multiple authoritative sources to provide
+                        comprehensive insights for property assessment professionals.
+                    </p>
+                    <div class="row row-cols-1 row-cols-md-2 g-4 mb-4">
+                        <div class="col">
+                            <div class="d-flex align-items-center bg-white bg-opacity-10 p-3 rounded-3 h-100">
+                                <i class="bi bi-building-fill text-white me-3 fs-3"></i>
+                                <div>
+                                    <h5 class="fw-bold mb-0">Washington State Legislature</h5>
+                                    <small class="text-white-50">Official bill tracking</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="d-flex align-items-center bg-white bg-opacity-10 p-3 rounded-3 h-100">
+                                <i class="bi bi-globe text-white me-3 fs-3"></i>
+                                <div>
+                                    <h5 class="fw-bold mb-0">OpenStates API</h5>
+                                    <small class="text-white-50">Comprehensive state legislation</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="d-flex align-items-center bg-white bg-opacity-10 p-3 rounded-3 h-100">
+                                <i class="bi bi-graph-up text-white me-3 fs-3"></i>
+                                <div>
+                                    <h5 class="fw-bold mb-0">LegiScan API</h5>
+                                    <small class="text-white-50">Real-time legislative insights</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="d-flex align-items-center bg-white bg-opacity-10 p-3 rounded-3 h-100">
+                                <i class="bi bi-file-earmark-text text-white me-3 fs-3"></i>
+                                <div>
+                                    <h5 class="fw-bold mb-0">Local Documents</h5>
+                                    <small class="text-white-50">County-specific ordinances</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <div class="card border-0 rounded-4 p-0 shadow-lg">
+                        <div class="card-header bg-dark text-white text-center border-0 rounded-top-4 py-3">
+                            <h3 class="card-title fw-bold mb-0">
+                                <i class="bi bi-lightning-charge-fill me-2 text-warning"></i> 
+                                Quick Start
+                            </h3>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="list-group list-group-flush">
+                                <a href="{{ url_for('web.login') }}" class="list-group-item list-group-item-action border-0 py-3">
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge rounded-pill bg-primary fs-6 me-3">1</span>
+                                        <div>
+                                            <strong>Log in to your account</strong>
+                                            <div class="text-muted small">Access your personalized dashboard</div>
+                                        </div>
+                                        <i class="bi bi-chevron-right ms-auto"></i>
+                                    </div>
+                                </a>
+                                <a href="{{ url_for('web.bills') }}" class="list-group-item list-group-item-action border-0 py-3">
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge rounded-pill bg-primary fs-6 me-3">2</span>
+                                        <div>
+                                            <strong>Browse tracked legislation</strong>
+                                            <div class="text-muted small">View and filter bills from multiple sources</div>
+                                        </div>
+                                        <i class="bi bi-chevron-right ms-auto"></i>
+                                    </div>
+                                </a>
+                                <a href="{{ url_for('web.property_impact') }}" class="list-group-item list-group-item-action border-0 py-3">
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge rounded-pill bg-primary fs-6 me-3">3</span>
+                                        <div>
+                                            <strong>Analyze property impacts</strong>
+                                            <div class="text-muted small">Evaluate how bills affect property assessments</div>
+                                        </div>
+                                        <i class="bi bi-chevron-right ms-auto"></i>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent text-center border-0 p-4">
+                            <a href="{{ url_for('web.login') }}" class="btn btn-primary px-4 py-2">
+                                <i class="bi bi-box-arrow-in-right me-2"></i> Get Started
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

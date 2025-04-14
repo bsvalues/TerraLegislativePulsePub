@@ -11,12 +11,28 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            background: linear-gradient(135deg, #2a3a4a 0%, #13171c 100%);
+            background-attachment: fixed;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            z-index: -1;
         }
         .navbar-brand {
             font-weight: 700;
         }
         .sidebar {
             min-height: calc(100vh - 56px);
+            background-color: rgba(33, 37, 41, 0.8);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
         }
         main {
             flex: 1;
@@ -24,21 +40,44 @@
         .card {
             margin-bottom: 1rem;
             transition: transform 0.2s ease;
+            background-color: rgba(33, 37, 41, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
         .card:hover {
             transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
         }
         .footer {
             margin-top: auto;
+            background-color: rgba(33, 37, 41, 0.95);
+            backdrop-filter: blur(5px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
         .bill-card .card-header {
             font-weight: 600;
+            background-color: rgba(0, 0, 0, 0.2);
         }
         .progress-bar {
             transition: width 1s ease-in-out;
         }
         .badge-pill {
             border-radius: 50rem;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #0d6efd;
+            box-shadow: 0 2px 8px rgba(13, 110, 253, 0.4);
+        }
+        .container-fluid {
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+        .table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .table-hover tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.05);
         }
     </style>
     {% block head %}{% endblock %}
