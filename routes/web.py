@@ -1,213 +1,137 @@
 """
 Web Routes
 
-This module contains the web routes for the Benton County Assessor AI Platform.
+This module contains the routes for the web interface of the Benton County Assessor AI Platform.
 """
 
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
-from flask_login import login_required, current_user, login_user, logout_user
+import logging
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, current_app
+from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import User, Property, Assessment, LegislativeUpdate, AuditLog, db
-from services.bill_search_service import get_all_tracked_bills, search_bills, get_bill_by_id
-from services.bill_analysis_service import analyze_tracked_bill
+
+from models import User, LegislativeUpdate, db
+from services.bill_search_service import get_all_tracked_bills, search_bills, get_bill_by_id, search_relevant_bills
+from services.bill_analysis_service import analyze_tracked_bill, categorize_bill
+
+logger = logging.getLogger(__name__)
 
 web_bp = Blueprint('web', __name__)
 
 @web_bp.route('/')
 def index():
-    """Homepage with overview of the platform"""
+    """Render the homepage"""
     return render_template('index.html')
+
+@web_bp.route('/dashboard')
+@login_required
+def dashboard():
+    """Render the main dashboard"""
+    return render_template('dashboard.html')
 
 @web_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    """User login page"""
+    """Handle user login"""
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         
         user = User.query.filter_by(username=username).first()
         
-        if user and check_password_hash(user.password_hash, password):
+        if user and user.check_password(password):
             login_user(user)
             next_page = request.args.get('next', url_for('web.dashboard'))
             return redirect(next_page)
         else:
-            flash('Invalid username or password', 'danger')
+            flash('Invalid username or password')
     
     return render_template('login.html')
 
 @web_bp.route('/logout')
 @login_required
 def logout():
-    """User logout"""
+    """Handle user logout"""
     logout_user()
-    flash('You have been logged out', 'info')
     return redirect(url_for('web.index'))
 
-@web_bp.route('/dashboard')
+@web_bp.route('/bills')
 @login_required
-def dashboard():
-    """Main dashboard with key metrics and recent activity"""
-    # Sample metrics for the dashboard
-    metrics = {
-        'property_count': Property.query.count(),
-        'assessment_count': Assessment.query.count(),
-        'legislative_updates': LegislativeUpdate.query.count(),
-        'recent_activity': AuditLog.query.order_by(AuditLog.timestamp.desc()).limit(5).all()
-    }
+def bills():
+    """Show all tracked bills"""
+    # Get query parameters
+    search_query = request.args.get('query', '')
+    source_filter = request.args.get('source', '')
     
-    return render_template('dashboard.html', metrics=metrics)
+    # Get bills
+    if search_query:
+        sources = [source_filter] if source_filter else None
+        bills_data = search_bills(search_query, sources)
+    else:
+        bills_data = get_all_tracked_bills(limit=50)
+    
+    # Get unique sources for filter dropdown
+    sources = db.session.query(LegislativeUpdate.source).distinct().all()
+    sources = [source[0] for source in sources]
+    
+    return render_template('bills.html', 
+                          bills=bills_data, 
+                          sources=sources,
+                          current_query=search_query,
+                          current_source=source_filter)
 
-@web_bp.route('/legislative-tracking')
+@web_bp.route('/bills/<bill_id>')
 @login_required
-def legislative_tracking():
-    """Legislative tracking overview page"""
-    # Get recent bills from all trackers
-    bills = get_all_tracked_bills(limit=50)
+def bill_detail(bill_id):
+    """Show details for a specific bill"""
+    # Get source from query parameter
+    source = request.args.get('source', '')
     
-    # Group by source for the UI
-    bills_by_source = {}
-    for bill in bills:
-        source = bill.get('source', 'Unknown')
-        if source not in bills_by_source:
-            bills_by_source[source] = []
-        bills_by_source[source].append(bill)
-    
-    return render_template('legislative/overview.html', 
-                          bills_by_source=bills_by_source)
-
-@web_bp.route('/legislative-tracking/search')
-@login_required
-def search_legislation():
-    """Search for legislation across all trackers"""
-    query = request.args.get('query', '')
-    
-    results = []
-    if query:
-        results = search_bills(query)
-    
-    return render_template('legislative/search.html', 
-                          query=query, 
-                          results=results)
-
-@web_bp.route('/legislative-tracking/bill/<bill_id>')
-@login_required
-def view_bill(bill_id):
-    """View details of a specific bill"""
-    source = request.args.get('source')
-    
-    # Get the bill
+    # Get bill data
     bill = get_bill_by_id(bill_id, source)
     
     if not bill:
-        flash(f"Bill {bill_id} not found", 'warning')
-        return redirect(url_for('web.legislative_tracking'))
+        flash(f'Bill {bill_id} not found')
+        return redirect(url_for('web.bills'))
     
-    # Get analysis based on user's properties
-    property_class = request.args.get('property_class')
+    # Get impact analysis
+    analysis = analyze_tracked_bill(bill_id, 'impact', source=source)
     
-    # Check if an analysis already exists, or needs to be generated
-    analysis = None
-    if request.args.get('analyze') == 'true':
-        analysis = analyze_tracked_bill(
-            bill_id=bill_id,
-            source=source,
-            property_class=property_class
-        )
-    
-    return render_template('legislative/bill_detail.html', 
+    return render_template('bill_detail.html', 
                           bill=bill, 
-                          analysis=analysis,
-                          property_class=property_class)
+                          analysis=analysis)
 
-@web_bp.route('/properties')
+@web_bp.route('/property-impact')
 @login_required
-def property_list():
-    """List of properties in the system"""
-    properties = Property.query.all()
-    return render_template('properties/list.html', properties=properties)
-
-@web_bp.route('/properties/<property_id>')
-@login_required
-def property_detail(property_id):
-    """Details of a specific property"""
-    property = Property.query.get_or_404(property_id)
-    assessments = property.assessments
+def property_impact():
+    """Show property impact analysis tool"""
+    # Get property classes from config
+    property_classes = current_app.config.get('PROPERTY_CLASSIFICATIONS', {})
     
-    return render_template('properties/detail.html', 
-                          property=property, 
-                          assessments=assessments)
-
-@web_bp.route('/activity-log')
-@login_required
-def activity_log():
-    """System activity log"""
-    logs = AuditLog.query.order_by(AuditLog.timestamp.desc()).limit(100).all()
-    return render_template('activity_log.html', logs=logs)
-
-@web_bp.route('/profile')
-@login_required
-def user_profile():
-    """User profile page"""
-    return render_template('profile.html')
-
-@web_bp.route('/settings')
-@login_required
-def settings():
-    """System settings page"""
-    from datetime import datetime
-    from utils.api_key_manager import ApiKeyManager
+    # Get recent bills
+    recent_bills = get_all_tracked_bills(limit=10)
     
-    # Check API key status
-    api_status = ApiKeyManager.check_api_key_status()
-    
-    return render_template('settings.html', 
-                          api_status=api_status,
-                          now=datetime.now())
+    return render_template('property_impact.html',
+                          property_classes=property_classes,
+                          recent_bills=recent_bills)
 
-@web_bp.route('/update-api-key', methods=['POST'])
+@web_bp.route('/relevant-bills')
 @login_required
-def update_api_key():
-    """Update API key"""
-    from utils.api_key_manager import ApiKeyManager
+def relevant_bills():
+    """Show bills relevant to a specific property class"""
+    # Get query parameters
+    property_class = request.args.get('property_class', 'Residential')
+    keywords = request.args.get('keywords', '')
     
-    service = request.form.get('service')
-    api_key = request.form.get('api_key')
+    # Convert keywords to list
+    keyword_list = [k.strip() for k in keywords.split(',')] if keywords else None
     
-    if not service or not api_key:
-        flash('Missing service or API key', 'danger')
-        return redirect(url_for('web.settings'))
+    # Get relevant bills
+    bills_data = search_relevant_bills(property_class, keyword_list)
     
-    # Update the API key
-    success = ApiKeyManager.update_api_key(service, api_key)
+    # Get property classes from config
+    property_classes = current_app.config.get('PROPERTY_CLASSIFICATIONS', {})
     
-    if success:
-        flash(f'{service.title()} API key updated successfully', 'success')
-    else:
-        flash(f'Failed to update {service.title()} API key', 'danger')
-    
-    return redirect(url_for('web.settings'))
-
-@web_bp.route('/update-tracker-config', methods=['POST'])
-@login_required
-def update_tracker_config():
-    """Update tracker configuration"""
-    # This would update the tracker configuration in a real implementation
-    flash('Tracker configuration updated successfully', 'success')
-    return redirect(url_for('web.settings'))
-
-@web_bp.route('/update-ai-settings', methods=['POST'])
-@login_required
-def update_ai_settings():
-    """Update AI settings"""
-    # This would update the AI settings in a real implementation
-    flash('AI settings updated successfully', 'success')
-    return redirect(url_for('web.settings'))
-
-@web_bp.route('/update-notification-settings', methods=['POST'])
-@login_required
-def update_notification_settings():
-    """Update notification settings"""
-    # This would update the notification settings in a real implementation
-    flash('Notification settings updated successfully', 'success')
-    return redirect(url_for('web.settings'))
+    return render_template('relevant_bills.html',
+                          bills=bills_data,
+                          property_classes=property_classes,
+                          current_class=property_class,
+                          current_keywords=keywords)

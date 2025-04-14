@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block title %}Relevant Bills - Benton County Assessor AI Platform{% endblock %}
+
+{% block head %}
+<style>
+    .property-class-pill {
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .property-class-pill.active {
+        transform: scale(1.05);
+    }
+    .keyword-tag {
+        background-color: var(--bs-primary-bg-subtle);
+        color: var(--bs-primary);
+        border-radius: 50rem;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.875rem;
+        display: inline-block;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .bill-card {
+        transition: transform 0.2s ease;
+        cursor: pointer;
+    }
+    .bill-card:hover {
+        transform: translateY(-5px);
+    }
+    .bill-card .card-footer {
+        background-color: transparent;
+    }
+    .bill-impact-indicator {
+        width: 8px;
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        border-top-left-radius: 0.375rem;
+        border-bottom-left-radius: 0.375rem;
+    }
+    .impact-high {
+        background-color: var(--bs-danger);
+    }
+    .impact-medium {
+        background-color: var(--bs-warning);
+    }
+    .impact-low {
+        background-color: var(--bs-success);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Relevant Bills</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-cloud-download me-1"></i> Update
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Filter Relevant Bills</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('web.relevant_bills') }}" method="get" id="relevantBillsForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Property Class</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for class_name in property_classes.keys() %}
+                                <div class="form-check">
+                                    <input class="form-check-input d-none" type="radio" name="property_class" 
+                                        id="class_{{ class_name }}" value="{{ class_name }}"
+                                        {% if class_name == current_class %}checked{% endif %}>
+                                    <label class="btn btn-outline-primary {% if class_name == current_class %}active{% endif %} property-class-pill" 
+                                        for="class_{{ class_name }}">
+                                        {{ class_name }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="keywordsInput" class="form-label fw-bold">Keywords</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="keywordsInput" name="keywords"
+                                    placeholder="e.g. tax, exemption, valuation" value="{{ current_keywords }}">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="bi bi-search me-1"></i> Search
+                                </button>
+                            </div>
+                            <div class="form-text">Separate multiple keywords with commas</div>
+                        </div>
+                    </div>
+                    
+                    {% if current_keywords %}
+                    <div class="mt-2">
+                        <label class="form-label fw-bold">Current Keywords:</label>
+                        <div>
+                            {% for keyword in current_keywords.split(',') %}
+                            <span class="keyword-tag">
+                                {{ keyword.strip() }}
+                                <i class="bi bi-x ms-1" role="button"></i>
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h4>Bills Relevant to {{ current_class }} Properties</h4>
+        <p class="text-muted">
+            {% if bills|length > 0 %}
+            Showing {{ bills|length }} relevant bills
+            {% if current_keywords %}
+            related to "{{ current_keywords }}"
+            {% endif %}
+            {% else %}
+            No bills found matching your criteria
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    {% if bills|length > 0 %}
+        {% for bill in bills %}
+        <div class="col-md-6 col-xl-4 mb-4">
+            <div class="card shadow bill-card h-100">
+                {% set impact_level = bill.impact_level|default('medium')|lower %}
+                <div class="bill-impact-indicator impact-{{ impact_level }}"></div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <h5 class="card-title">{{ bill.bill_id }}</h5>
+                        <span class="badge {% if bill.source == 'wa_legislature' %}bg-primary
+                                            {% elif bill.source == 'openstates' %}bg-success
+                                            {% elif bill.source == 'legiscan' %}bg-info
+                                            {% else %}bg-warning{% endif %}">
+                            {{ bill.source }}
+                        </span>
+                    </div>
+                    <p class="card-text">{{ bill.title }}</p>
+                    
+                    {% if bill.impact_summary %}
+                    <div class="alert alert-light alert-sm mt-3 mb-0 p-2">
+                        <small class="text-muted">{{ bill.impact_summary }}</small>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{{ url_for('web.bill_detail', bill_id=bill.bill_id, source=bill.source) }}" 
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-eye me-1"></i> View Details
+                    </a>
+                    <a href="#" class="btn btn-sm btn-outline-secondary ms-2">
+                        <i class="bi bi-graph-up me-1"></i> Impact Analysis
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+    <div class="col-12">
+        <div class="card shadow text-center p-5">
+            <div class="py-5">
+                <i class="bi bi-search fs-1 text-muted mb-3"></i>
+                <h5>No Relevant Bills Found</h5>
+                <p class="text-muted">Try adjusting your search criteria or property class selection</p>
+                <a href="{{ url_for('web.relevant_bills') }}" class="btn btn-primary mt-3">
+                    <i class="bi bi-arrow-repeat me-1"></i> Reset Filters
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Property class pill selector
+        const classPills = document.querySelectorAll('.property-class-pill');
+        classPills.forEach(pill => {
+            pill.addEventListener('click', function() {
+                const radio = document.getElementById(this.getAttribute('for'));
+                radio.checked = true;
+                
+                // Add active class
+                classPills.forEach(p => p.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Auto-submit the form
+                document.getElementById('relevantBillsForm').submit();
+            });
+        });
+        
+        // Keyword tag removal
+        const keywordTags = document.querySelectorAll('.keyword-tag .bi-x');
+        const keywordsInput = document.getElementById('keywordsInput');
+        
+        keywordTags.forEach(tag => {
+            tag.addEventListener('click', function() {
+                const keyword = this.parentNode.textContent.trim().replace('×', '').trim();
+                const currentKeywords = keywordsInput.value.split(',').map(k => k.trim());
+                const newKeywords = currentKeywords.filter(k => k !== keyword).join(', ');
+                
+                keywordsInput.value = newKeywords;
+                document.getElementById('relevantBillsForm').submit();
+            });
+        });
+    });
+</script>
+{% endblock %}
