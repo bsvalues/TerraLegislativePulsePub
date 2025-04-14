@@ -10,9 +10,12 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def get_all_tracked_bills():
+def get_all_tracked_bills(limit=100):
     """
     Retrieve all tracked bills from all tracker sources.
+    
+    Args:
+        limit (int, optional): Maximum number of bills to return per source
     
     Returns:
         list: A combined list of bills from all trackers
@@ -21,7 +24,7 @@ def get_all_tracked_bills():
     
     try:
         from .wa_legislature import get_wa_legislature_bills
-        wa_bills = get_wa_legislature_bills()
+        wa_bills = get_wa_legislature_bills(limit=limit)
         for bill in wa_bills:
             bill['source'] = 'wa_legislature'
         bills.extend(wa_bills)
@@ -30,7 +33,7 @@ def get_all_tracked_bills():
     
     try:
         from .openstates import get_openstates_bills
-        openstates_bills = get_openstates_bills()
+        openstates_bills = get_openstates_bills(limit=limit)
         for bill in openstates_bills:
             bill['source'] = 'openstates'
         bills.extend(openstates_bills)
@@ -39,7 +42,7 @@ def get_all_tracked_bills():
     
     try:
         from .legiscan import get_legiscan_bills
-        legiscan_bills = get_legiscan_bills()
+        legiscan_bills = get_legiscan_bills(limit=limit)
         for bill in legiscan_bills:
             bill['source'] = 'legiscan'
         bills.extend(legiscan_bills)
@@ -48,7 +51,7 @@ def get_all_tracked_bills():
     
     try:
         from .local_docs import get_local_documents
-        local_docs = get_local_documents()
+        local_docs = get_local_documents(limit=limit)
         for doc in local_docs:
             doc['source'] = 'local'
         bills.extend(local_docs)

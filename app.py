@@ -46,10 +46,14 @@ def load_user(user_id):
 from routes.web import web_bp
 from routes.api import api_bp
 from routes.auth import auth_bp
+from routes.ai_api import ai_api_bp
+from routes.bill_api import bill_api_bp
 
 app.register_blueprint(web_bp)
 app.register_blueprint(api_bp, url_prefix='/api')
 app.register_blueprint(auth_bp, url_prefix='/auth')
+app.register_blueprint(ai_api_bp, url_prefix='/api')
+app.register_blueprint(bill_api_bp, url_prefix='/api')
 
 # Initialize MCP
 from mcp.master_control import MasterControlProgram
@@ -72,5 +76,17 @@ with app.app_context():
     
     # Make MCP available to the application
     app.config['MCP'] = mcp
+    
+    # Configure Anthropic API key
+    app.config['ANTHROPIC_API_KEY'] = os.environ.get('ANTHROPIC_API_KEY')
+    app.config['ANTHROPIC_MODEL'] = "claude-3-5-sonnet-20241022"  # the newest Anthropic model is "claude-3-5-sonnet-20241022" which was released October 22, 2024
+    
+    # Configure external APIs for trackers
+    app.config['LEGISCAN_API_KEY'] = os.environ.get('LEGISCAN_API_KEY')
+    app.config['OPENSTATES_API_KEY'] = os.environ.get('OPENSTATES_API_KEY')
+    
+    # Initialize legislative trackers
+    from services.trackers import initialize_trackers
+    initialize_trackers()
     
     logger.info("Benton County Assessor AI Platform initialized successfully")
