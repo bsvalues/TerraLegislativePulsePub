@@ -571,21 +571,3 @@ def impact_assessment():
             "error": f"Error in impact assessment: {str(e)}"
         }), 500
 
-def _log_action(action, details):
-    """Log an action to the audit log"""
-    try:
-        if current_user.is_authenticated:
-            # Create a new audit log entry
-            log_entry = AuditLog(
-                user_id=current_user.id,
-                action=action,
-                details=details,
-                ip_address=request.remote_addr
-            )
-            
-            # Add and commit to the database
-            db.session.add(log_entry)
-            db.session.commit()
-    except Exception as e:
-        logger.exception(f"Error logging action: {str(e)}")
-        # Continue without failing if logging fails
