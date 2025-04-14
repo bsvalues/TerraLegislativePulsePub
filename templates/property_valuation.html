@@ -162,28 +162,96 @@
                                 </div>
                                 <div class="table-responsive mt-3">
                                     <table class="table table-bordered">
-                                        <tr>
-                                            <th>Market Value:</th>
-                                            <td class="text-end">${{ "{:,.2f}".format(valuation_results.market_value) }}</td>
+                                        <tr class="table-primary">
+                                            <th>Final Market Value:</th>
+                                            <td class="text-end fw-bold">${{ "{:,.2f}".format(valuation_results.market_value) }}</td>
                                         </tr>
                                         <tr>
                                             <th>Base Value:</th>
                                             <td class="text-end">${{ "{:,.2f}".format(valuation_results.base_value) }}</td>
                                         </tr>
                                         <tr>
-                                            <th>Market Multiplier:</th>
-                                            <td class="text-end">{{ valuation_results.market_multiplier }}</td>
-                                        </tr>
-                                        <tr>
                                             <th>Property Class:</th>
                                             <td>{{ valuation_results.property_class }}</td>
                                         </tr>
                                         <tr>
+                                            <th>Location:</th>
+                                            <td>{{ valuation_results.property_city }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th colspan="2" class="table-secondary">Value Adjustment Factors</th>
+                                        </tr>
+                                        <tr>
+                                            <th>Market Multiplier:</th>
+                                            <td class="text-end">{{ "{:.2f}".format(valuation_results.market_multiplier) }} ({{ "{:.1f}%".format((valuation_results.market_multiplier-1)*100) }})</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Location Multiplier:</th>
+                                            <td class="text-end">{{ "{:.2f}".format(valuation_results.location_multiplier) }} ({{ "{:.1f}%".format((valuation_results.location_multiplier-1)*100) }})</td>
+                                        </tr>
+                                        {% if 'age_adjustment' in valuation_results %}
+                                        <tr>
+                                            <th>Age Adjustment:</th>
+                                            <td class="text-end">{{ "{:.2f}".format(valuation_results.age_adjustment) }} ({{ "{:.1f}%".format((valuation_results.age_adjustment-1)*100) }})</td>
+                                        </tr>
+                                        {% endif %}
+                                        {% if 'size_adjustment' in valuation_results %}
+                                        <tr>
+                                            <th>Size Adjustment:</th>
+                                            <td class="text-end">{{ "{:.2f}".format(valuation_results.size_adjustment) }} ({{ "{:.1f}%".format((valuation_results.size_adjustment-1)*100) }})</td>
+                                        </tr>
+                                        {% endif %}
+                                        {% if 'feature_adjustment' in valuation_results %}
+                                        <tr>
+                                            <th>Feature Adjustment:</th>
+                                            <td class="text-end">{{ "{:.2f}".format(valuation_results.feature_adjustment) }} ({{ "{:.1f}%".format((valuation_results.feature_adjustment-1)*100) }})</td>
+                                        </tr>
+                                        {% endif %}
+                                        <tr>
                                             <th>Confidence Score:</th>
-                                            <td>{{ valuation_results.confidence_score * 100 }}%</td>
+                                            <td class="text-end">{{ valuation_results.confidence_score * 100 }}%</td>
                                         </tr>
                                     </table>
                                 </div>
+                                
+                                {% if valuation_results.comparable_properties %}
+                                <div class="mt-4">
+                                    <h6 class="mb-3">Comparable Properties</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-bordered">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Property</th>
+                                                    <th class="text-end">Base Value</th>
+                                                    <th class="text-end">Adjustment</th>
+                                                    <th class="text-end">Adjusted Value</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for comparable in valuation_results.comparable_properties %}
+                                                <tr>
+                                                    <td>
+                                                        {{ comparable.address }}
+                                                        {% if comparable.year_built %}
+                                                        <small class="text-muted d-block">Built {{ comparable.year_built }}</small>
+                                                        {% endif %}
+                                                        {% if comparable.building_area %}
+                                                        <small class="text-muted d-block">{{ "{:,.0f}".format(comparable.building_area) }} sq ft</small>
+                                                        {% endif %}
+                                                        {% if comparable.bedrooms and comparable.bathrooms %}
+                                                        <small class="text-muted d-block">{{ comparable.bedrooms }} bed/{{ comparable.bathrooms }} bath</small>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="text-end">${{ "{:,.2f}".format(comparable.value) }}</td>
+                                                    <td class="text-end">{{ "{:.2f}".format(comparable.adjustment_factor) }}</td>
+                                                    <td class="text-end">${{ "{:,.2f}".format(comparable.adjusted_value) }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                {% endif %}
                             </div>
                         
                         <!-- Cost Approach Results -->
