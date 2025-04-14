@@ -1,155 +1,191 @@
 """
 Bill Search Service
 
-This module provides functionality for searching and retrieving bills.
+This service provides functions for searching and retrieving legislative bills
+from the database.
 """
 
 import logging
-from typing import List, Dict, Any, Optional, Tuple
-
+from datetime import datetime, timedelta
+from sqlalchemy import or_, and_, desc
 from flask import current_app
-from models import LegislativeUpdate
+
+from models import LegislativeUpdate, db
 
 logger = logging.getLogger(__name__)
 
-def get_all_tracked_bills(limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
+def get_all_tracked_bills(limit=100, offset=0, source=None):
     """
-    Get all tracked bills
+    Get all tracked bills with optional source filtering
     
     Args:
-        limit (int): Maximum number of bills to retrieve
+        limit (int): Maximum number of bills to return
+        offset (int): Offset for pagination
+        source (str): Optional source filter
+        
+    Returns:
+        list: List of bills
+    """
+    query = LegislativeUpdate.query
+    
+    if source:
+        query = query.filter(LegislativeUpdate.source == source)
+    
+    bills = query.order_by(desc(LegislativeUpdate.last_action_date)) \
+                .limit(limit) \
+                .offset(offset) \
+                .all()
+    
+    return [bill_to_dict(bill) for bill in bills]
+
+def search_bills(search_term, sources=None, limit=100, offset=0):
+    """
+    Search for bills by title, description, or bill ID
+    
+    Args:
+        search_term (str): Search term
+        sources (list): List of sources to search
+        limit (int): Maximum number of bills to return
         offset (int): Offset for pagination
         
     Returns:
-        List[Dict[str, Any]]: List of bills
+        list: List of bills matching the search criteria
     """
-    try:
-        # Query the database for all tracked bills
-        bills = LegislativeUpdate.query.order_by(
-            LegislativeUpdate.last_action_date.desc()
-        ).limit(limit).offset(offset).all()
-        
-        # Convert to dictionary format
-        return [_bill_to_dict(bill) for bill in bills]
-        
-    except Exception as e:
-        logger.exception(f"Error getting all tracked bills: {str(e)}")
-        return []
-
-def search_bills(query: str, sources: Optional[List[str]] = None, limit: int = 20) -> List[Dict[str, Any]]:
-    """
-    Search for bills by keyword
+    search_pattern = f"%{search_term}%"
     
-    Args:
-        query (str): Search query
-        sources (List[str], optional): List of sources to search (e.g., ['wa_legislature', 'openstates'])
-        limit (int): Maximum number of results to return
-        
-    Returns:
-        List[Dict[str, Any]]: Search results
-    """
-    try:
-        # Start with a base query
-        base_query = LegislativeUpdate.query
-        
-        # Add source filter if provided
-        if sources:
-            base_query = base_query.filter(LegislativeUpdate.source.in_(sources))
-        
-        # Add search conditions (searching in title and description)
-        search_query = base_query.filter(
-            (LegislativeUpdate.title.ilike(f'%{query}%')) | 
-            (LegislativeUpdate.description.ilike(f'%{query}%'))
-        ).order_by(LegislativeUpdate.last_action_date.desc()).limit(limit)
-        
-        # Execute the query
-        bills = search_query.all()
-        
-        # Convert to dictionary format
-        return [_bill_to_dict(bill) for bill in bills]
-        
-    except Exception as e:
-        logger.exception(f"Error searching bills: {str(e)}")
-        return []
+    query = LegislativeUpdate.query.filter(
+        or_(
+            LegislativeUpdate.title.ilike(search_pattern),
+            LegislativeUpdate.description.ilike(search_pattern),
+            LegislativeUpdate.bill_id.ilike(search_pattern)
+        )
+    )
+    
+    if sources:
+        query = query.filter(LegislativeUpdate.source.in_(sources))
+    
+    bills = query.order_by(desc(LegislativeUpdate.last_action_date)) \
+                .limit(limit) \
+                .offset(offset) \
+                .all()
+    
+    return [bill_to_dict(bill) for bill in bills]
 
-def get_bill_by_id(bill_id: str, source: Optional[str] = None) -> Optional[Dict[str, Any]]:
+def get_bill_by_id(bill_id, source=None):
     """
     Get a specific bill by ID
     
     Args:
         bill_id (str): The bill ID
-        source (str, optional): The source of the bill
+        source (str): Optional source filter
         
     Returns:
-        Optional[Dict[str, Any]]: The bill data, or None if not found
+        dict: Bill data or None if not found
     """
-    try:
-        # Build the query
-        query = LegislativeUpdate.query.filter_by(bill_id=bill_id)
-        
-        # Add source filter if provided
-        if source:
-            query = query.filter_by(source=source)
-            
-        # Find the bill
-        bill = query.first()
-        
-        # Return as dictionary if found
-        return _bill_to_dict(bill) if bill else None
-        
-    except Exception as e:
-        logger.exception(f"Error getting bill {bill_id}: {str(e)}")
-        return None
+    query = LegislativeUpdate.query.filter(LegislativeUpdate.bill_id == bill_id)
+    
+    if source:
+        query = query.filter(LegislativeUpdate.source == source)
+    
+    bill = query.first()
+    
+    if bill:
+        return bill_to_dict(bill)
+    
+    return None
 
-def search_relevant_bills(property_class: str, keywords: Optional[List[str]] = None, limit: int = 10) -> List[Dict[str, Any]]:
+def search_relevant_bills(property_class, keywords=None, limit=50):
     """
-    Search for bills relevant to a particular property class and/or keywords
+    Search for bills relevant to a specific property class
     
     Args:
-        property_class (str): The property class (e.g., 'Residential', 'Commercial')
-        keywords (List[str], optional): Additional keywords to consider
-        limit (int): Maximum number of results to return
+        property_class (str): The property class (e.g., 'Residential')
+        keywords (list): Optional list of keywords to further filter results
+        limit (int): Maximum number of bills to return
         
     Returns:
-        List[Dict[str, Any]]: Relevant bills
+        list: List of bills relevant to the property class
     """
-    try:
-        # Start with a base query that looks for the property class
-        base_query = LegislativeUpdate.query.filter(
-            LegislativeUpdate.affected_property_classes.ilike(f'%{property_class}%')
+    property_class_pattern = f"%{property_class}%"
+    
+    # Start with bills that explicitly mention the property class
+    query = LegislativeUpdate.query.filter(
+        or_(
+            LegislativeUpdate.affected_property_classes.ilike(property_class_pattern),
+            LegislativeUpdate.title.ilike(property_class_pattern),
+            LegislativeUpdate.description.ilike(property_class_pattern)
         )
-        
-        # Add keyword filters if provided
-        if keywords and len(keywords) > 0:
-            for keyword in keywords:
-                base_query = base_query.filter(
-                    (LegislativeUpdate.title.ilike(f'%{keyword}%')) | 
-                    (LegislativeUpdate.description.ilike(f'%{keyword}%'))
+    )
+    
+    # Apply keyword filters if provided
+    if keywords and len(keywords) > 0:
+        keyword_filters = []
+        for keyword in keywords:
+            keyword_pattern = f"%{keyword}%"
+            keyword_filters.append(
+                or_(
+                    LegislativeUpdate.title.ilike(keyword_pattern),
+                    LegislativeUpdate.description.ilike(keyword_pattern)
                 )
-        
-        # Order by last action date and impact summary presence
-        # (bills with impact summaries are more likely to be relevant)
-        bills = base_query.order_by(
-            LegislativeUpdate.impact_summary.is_(None),  # Bills with impact summaries first
-            LegislativeUpdate.last_action_date.desc()    # Then by date
-        ).limit(limit).all()
-        
-        # Convert to dictionary format
-        return [_bill_to_dict(bill) for bill in bills]
-        
-    except Exception as e:
-        logger.exception(f"Error finding relevant bills for {property_class}: {str(e)}")
-        return []
+            )
+        query = query.filter(or_(*keyword_filters))
+    
+    bills = query.order_by(desc(LegislativeUpdate.last_action_date)) \
+                .limit(limit) \
+                .all()
+    
+    return [bill_to_dict(bill) for bill in bills]
 
-def _bill_to_dict(bill: LegislativeUpdate) -> Dict[str, Any]:
+def get_recent_bills(days=30, limit=10):
+    """
+    Get bills updated in the last N days
+    
+    Args:
+        days (int): Number of days to look back
+        limit (int): Maximum number of bills to return
+        
+    Returns:
+        list: List of recent bills
+    """
+    cutoff_date = datetime.now() - timedelta(days=days)
+    
+    bills = LegislativeUpdate.query \
+        .filter(LegislativeUpdate.last_action_date >= cutoff_date) \
+        .order_by(desc(LegislativeUpdate.last_action_date)) \
+        .limit(limit) \
+        .all()
+    
+    return [bill_to_dict(bill) for bill in bills]
+
+def get_high_impact_bills(limit=10):
+    """
+    Get bills with high impact (based on analysis)
+    
+    Args:
+        limit (int): Maximum number of bills to return
+        
+    Returns:
+        list: List of high-impact bills
+    """
+    # This is a simplified implementation. In a production system,
+    # we would have a more sophisticated impact scoring mechanism.
+    bills = LegislativeUpdate.query \
+        .filter(LegislativeUpdate.impact_summary.isnot(None)) \
+        .order_by(desc(LegislativeUpdate.last_action_date)) \
+        .limit(limit) \
+        .all()
+    
+    return [bill_to_dict(bill) for bill in bills]
+
+def bill_to_dict(bill):
     """
     Convert a LegislativeUpdate model to a dictionary
     
     Args:
-        bill (LegislativeUpdate): The bill to convert
+        bill (LegislativeUpdate): The bill model
         
     Returns:
-        Dict[str, Any]: Dictionary representation of the bill
+        dict: Dictionary representation of the bill
     """
     return {
         'id': bill.id,
@@ -159,10 +195,10 @@ def _bill_to_dict(bill: LegislativeUpdate) -> Dict[str, Any]:
         'source': bill.source,
         'url': bill.url,
         'status': bill.status,
-        'introduced_date': bill.introduced_date.isoformat() if bill.introduced_date else None,
-        'last_action_date': bill.last_action_date.isoformat() if bill.last_action_date else None,
+        'introduced_date': bill.introduced_date.strftime('%Y-%m-%d') if bill.introduced_date else None,
+        'last_action_date': bill.last_action_date.strftime('%Y-%m-%d') if bill.last_action_date else None,
         'impact_summary': bill.impact_summary,
         'affected_property_classes': bill.affected_property_classes,
-        'created_at': bill.created_at.isoformat(),
-        'updated_at': bill.updated_at.isoformat()
+        'created_at': bill.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+        'updated_at': bill.updated_at.strftime('%Y-%m-%d %H:%M:%S')
     }

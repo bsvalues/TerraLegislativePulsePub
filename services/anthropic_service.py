@@ -1,15 +1,15 @@
 """
-Anthropic API Service
+Anthropic Service
 
-This module provides functionality for interacting with the Anthropic API.
+This service provides functions for interacting with the Anthropic API to analyze
+legislative bills.
 """
 
-import os
-import sys
 import logging
 import json
-import re
-from typing import Dict, Any, List, Tuple, Optional
+import os
+import sys
+from typing import Dict, Any, List, Optional, Union
 
 import anthropic
 from anthropic import Anthropic
@@ -17,409 +17,302 @@ from flask import current_app
 
 logger = logging.getLogger(__name__)
 
-def get_ai_response(prompt: str, system_prompt: Optional[str] = None, temperature: float = 0.7, max_tokens: int = 4000) -> str:
+def get_anthropic_client() -> Anthropic:
     """
-    Get a response from the Anthropic API
+    Get an initialized Anthropic client
     
-    Args:
-        prompt (str): The prompt to send to the API
-        system_prompt (str, optional): The system prompt to use
-        temperature (float): The temperature to use for generation
-        max_tokens (int): The maximum number of tokens to generate
-        
     Returns:
-        str: The response from the API
+        Anthropic: Initialized Anthropic client
     """
-    try:
-        # Get the API key
-        api_key = current_app.config.get('ANTHROPIC_API_KEY')
-        
-        if not api_key:
-            logger.error("Anthropic API key not configured")
-            return "Error: Anthropic API key not configured"
-        
-        # Get the model
-        model = current_app.config.get('ANTHROPIC_MODEL', "claude-3-5-sonnet-20241022")
-        
-        # Initialize the client
-        client = Anthropic(
-            api_key=api_key,
-        )
-        
-        # Determine the message structure based on whether a system prompt is provided
-        messages = []
-        
-        if system_prompt:
-            messages = [
-                {
-                    "role": "system",
-                    "content": system_prompt
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ]
-        else:
-            messages = [
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ]
-        
-        # Call the API
-        response = client.messages.create(
-            model=model,
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens
-        )
-        
-        # Return the response
-        return response.content[0].text
-        
-    except Exception as e:
-        logger.exception(f"Error getting AI response: {str(e)}")
-        return f"Error: {str(e)}"
+    # Get API key from environment or config
+    anthropic_key = current_app.config.get('ANTHROPIC_API_KEY')
+    
+    if not anthropic_key:
+        logger.error("ANTHROPIC_API_KEY not set")
+        raise ValueError("ANTHROPIC_API_KEY not set")
+    
+    # Initialize client
+    return Anthropic(api_key=anthropic_key)
 
-def analyze_bill_impact(bill_text: str, bill_title: Optional[str] = None, property_class: Optional[str] = None) -> Dict[str, Any]:
+def generate_bill_summary(bill_text: str, bill_title: Optional[str] = None, 
+                          summary_type: str = "general", length: str = "medium") -> Dict[str, Any]:
     """
-    Analyze the impact of a bill on property assessments
+    Generate a summary of a legislative bill using Claude
     
     Args:
         bill_text (str): The text of the bill
         bill_title (str, optional): The title of the bill
-        property_class (str, optional): The property class to analyze impact for
+        summary_type (str): Type of summary - "general", "policy", "technical", "fiscal"
+        length (str): Length of summary - "short", "medium", "long"
         
     Returns:
-        Dict[str, Any]: The analysis results
+        dict: Summary data including the summary text and key provisions
     """
+    client = get_anthropic_client()
+    model = current_app.config.get('ANTHROPIC_MODEL', 'claude-3-5-sonnet-20241022')
+    
+    # Prepare the prompt
+    prompt = f"""You are an expert legal analyst for the Benton County Assessor's office. 
+I need you to summarize this legislative bill that may affect property assessments.
+
+{f"Bill Title: {bill_title}" if bill_title else ""}
+
+Bill Text:
+{bill_text}
+
+Please provide a {length} {summary_type} summary of this bill. 
+Focus on aspects relevant to property assessment, taxation, and valuation.
+Also extract a list of 3-5 key provisions from the bill.
+
+Respond in JSON format with these fields:
+- summary: Your {summary_type} summary
+- key_provisions: A list of the key provisions
+- bill_type: The general category this bill falls under (e.g. "Property Tax", "Assessment Methodology", etc.)
+"""
+
     try:
-        # Build the prompt
-        title_text = f"Title: {bill_title}\n\n" if bill_title else ""
-        property_class_text = f"\nFocus specifically on implications for {property_class} properties." if property_class else ""
+        # Make API call
+        response = client.messages.create(
+            model=model,
+            max_tokens=1000,
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.0,
+            system="You are an expert legal and policy analyst who specializes in property assessment legislation. You provide accurate, objective analysis in JSON format."
+        )
         
-        prompt = f"""
-        Analyze this legislative bill and its potential impact on property assessments and valuations:{property_class_text}
+        # Extract the response text
+        response_text = response.content[0].text
         
-        {title_text}
-        Bill Text:
-        ```
-        {bill_text[:10000]}
-        ```
+        # Try to parse JSON from the response
+        # Sometimes the model might include markdown code blocks or other formatting
+        try:
+            # First, try direct JSON parsing
+            result = json.loads(response_text)
+        except json.JSONDecodeError:
+            # If direct parsing fails, try to extract JSON from code blocks
+            import re
+            json_match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', response_text)
+            if json_match:
+                try:
+                    result = json.loads(json_match.group(1))
+                except json.JSONDecodeError:
+                    # If that fails too, return a structured error response
+                    logger.error("Failed to parse JSON from Claude response")
+                    return {
+                        "summary": "Error: Could not parse summary from AI response.",
+                        "key_provisions": [],
+                        "bill_type": "Unknown"
+                    }
+            else:
+                # If no JSON-like structure is found, return a structured error
+                logger.error("No JSON structure found in Claude response")
+                return {
+                    "summary": "Error: Could not extract summary from AI response.",
+                    "key_provisions": [],
+                    "bill_type": "Unknown"
+                }
         
-        Provide a comprehensive analysis covering:
-        
-        1. Key provisions that affect property assessment
-        2. How valuation methodologies might need to change
-        3. Specific impacts on tax calculations
-        4. Implementation requirements and timeline
-        5. Recommendations for county assessor offices
-        
-        Format your response in clear sections with headers for each of the above points.
-        """
-        
-        # Get analysis from Claude
-        system_prompt = "You are a property assessment expert working for a county assessor's office. You specialize in analyzing how legislative changes affect property assessments and valuations."
-        
-        response = get_ai_response(prompt, system_prompt, temperature=0.3)
-        
+        return result
+    except Exception as e:
+        logger.exception(f"Error generating bill summary: {str(e)}")
         return {
-            "success": True,
-            "analysis": response,
-            "bill_title": bill_title,
-            "property_class": property_class
+            "summary": f"Error: {str(e)}",
+            "key_provisions": [],
+            "bill_type": "Unknown"
         }
+
+def extract_bill_entities(bill_text: str, bill_title: Optional[str] = None, 
+                          entity_types: Optional[List[str]] = None) -> Dict[str, Any]:
+    """
+    Extract named entities from a legislative bill using Claude
+    
+    Args:
+        bill_text (str): The text of the bill
+        bill_title (str, optional): The title of the bill
+        entity_types (list, optional): Types of entities to extract
         
+    Returns:
+        dict: Extracted entities by type
+    """
+    client = get_anthropic_client()
+    model = current_app.config.get('ANTHROPIC_MODEL', 'claude-3-5-sonnet-20241022')
+    
+    # Default entity types if none provided
+    if not entity_types:
+        entity_types = [
+            "organizations", 
+            "people", 
+            "locations", 
+            "legal_references"
+        ]
+    
+    # Prepare the prompt
+    prompt = f"""You are an expert legal analyst for the Benton County Assessor's office. 
+I need you to extract named entities from this legislative bill that may affect property assessments.
+
+{f"Bill Title: {bill_title}" if bill_title else ""}
+
+Bill Text:
+{bill_text}
+
+Please extract the following types of entities:
+{", ".join(entity_types)}
+
+For legal_references, include citations to laws, statutes, regulations, or other legal documents.
+
+Respond in JSON format with each entity type as a field containing an array of unique entity names.
+"""
+
+    try:
+        # Make API call
+        response = client.messages.create(
+            model=model,
+            max_tokens=1000,
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.0,
+            system="You are an expert legal and policy analyst who specializes in property assessment legislation. You provide accurate, objective entity extraction in JSON format."
+        )
+        
+        # Extract the response text
+        response_text = response.content[0].text
+        
+        # Try to parse JSON from the response
+        try:
+            # First, try direct JSON parsing
+            result = json.loads(response_text)
+        except json.JSONDecodeError:
+            # If direct parsing fails, try to extract JSON from code blocks
+            import re
+            json_match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', response_text)
+            if json_match:
+                try:
+                    result = json.loads(json_match.group(1))
+                except json.JSONDecodeError:
+                    # If that fails too, return a structured error response
+                    logger.error("Failed to parse JSON from Claude response")
+                    return {entity_type: [] for entity_type in entity_types}
+            else:
+                # If no JSON-like structure is found, return a structured error
+                logger.error("No JSON structure found in Claude response")
+                return {entity_type: [] for entity_type in entity_types}
+                
+        # Ensure all requested entity types are present in the result
+        for entity_type in entity_types:
+            if entity_type not in result:
+                result[entity_type] = []
+                
+        return result
+    except Exception as e:
+        logger.exception(f"Error extracting bill entities: {str(e)}")
+        return {entity_type: [] for entity_type in entity_types}
+
+def analyze_bill_impact(bill_text: str, bill_title: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Analyze the impact of a legislative bill on property assessments using Claude
+    
+    Args:
+        bill_text (str): The text of the bill
+        bill_title (str, optional): The title of the bill
+        
+    Returns:
+        dict: Impact analysis data
+    """
+    client = get_anthropic_client()
+    model = current_app.config.get('ANTHROPIC_MODEL', 'claude-3-5-sonnet-20241022')
+    
+    # Prepare the prompt
+    prompt = f"""You are an expert property assessment analyst for the Benton County Assessor's office.
+I need you to analyze the impact of this legislative bill on property assessments.
+
+{f"Bill Title: {bill_title}" if bill_title else ""}
+
+Bill Text:
+{bill_text}
+
+Please analyze:
+1. How this bill would affect property assessment methodologies
+2. Changes to property tax calculations or exemptions
+3. Which specific property classes would be most affected (Residential, Commercial, Industrial, Agricultural, Vacant Land, Public)
+4. Implementation requirements and timeline for the assessor's office
+
+Respond in JSON format with these fields:
+- summary: A concise summary of the overall impact
+- impact_level: One of "High", "Medium", or "Low"
+- affected_property_classes: An array of affected property classes
+- property_impacts: An array of objects with "area" (aspect affected), "description" (description of impact), and "severity" (High, Medium, Low)
+- implementation_timeline: Approximate timeline for implementation
+"""
+
+    try:
+        # Make API call
+        response = client.messages.create(
+            model=model,
+            max_tokens=1500,
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.0,
+            system="You are an expert property assessment analyst who specializes in analyzing the impacts of legislation on county assessment practices. You provide accurate, objective analysis in JSON format."
+        )
+        
+        # Extract the response text
+        response_text = response.content[0].text
+        
+        # Try to parse JSON from the response
+        try:
+            # First, try direct JSON parsing
+            result = json.loads(response_text)
+        except json.JSONDecodeError:
+            # If direct parsing fails, try to extract JSON from code blocks
+            import re
+            json_match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', response_text)
+            if json_match:
+                try:
+                    result = json.loads(json_match.group(1))
+                except json.JSONDecodeError:
+                    # If that fails too, return a structured error response
+                    logger.error("Failed to parse JSON from Claude response")
+                    return {
+                        "summary": "Error: Could not parse impact analysis from AI response.",
+                        "impact_level": "Unknown",
+                        "affected_property_classes": [],
+                        "property_impacts": [],
+                        "implementation_timeline": "Unknown"
+                    }
+            else:
+                # If no JSON-like structure is found, return a structured error
+                logger.error("No JSON structure found in Claude response")
+                return {
+                    "summary": "Error: Could not extract impact analysis from AI response.",
+                    "impact_level": "Unknown",
+                    "affected_property_classes": [],
+                    "property_impacts": [],
+                    "implementation_timeline": "Unknown"
+                }
+                
+        # Ensure all expected fields are present
+        required_fields = ["summary", "impact_level", "affected_property_classes", 
+                          "property_impacts", "implementation_timeline"]
+        for field in required_fields:
+            if field not in result:
+                if field == "property_impacts":
+                    result[field] = []
+                elif field == "affected_property_classes":
+                    result[field] = []
+                else:
+                    result[field] = "Unknown"
+                
+        return result
     except Exception as e:
         logger.exception(f"Error analyzing bill impact: {str(e)}")
         return {
-            "success": False,
-            "error": str(e)
-        }
-
-def generate_bill_summary(bill_text: str, bill_title: Optional[str] = None, summary_length: str = "medium") -> Dict[str, Any]:
-    """
-    Generate a summary of a bill
-    
-    Args:
-        bill_text (str): The text of the bill
-        bill_title (str, optional): The title of the bill
-        summary_length (str): The length of the summary (short, medium, long)
-        
-    Returns:
-        Dict[str, Any]: The summary results
-    """
-    try:
-        # Map summary length to word count
-        word_counts = {
-            "short": 150,
-            "medium": 300,
-            "long": 500
-        }
-        
-        word_count = word_counts.get(summary_length, 300)
-        
-        # Build the prompt
-        title_text = f"Title: {bill_title}\n\n" if bill_title else ""
-        
-        prompt = f"""
-        Summarize this legislative bill related to property assessment and taxation:
-        
-        {title_text}
-        Bill Text:
-        ```
-        {bill_text[:10000]}
-        ```
-        
-        Please provide a {summary_length} summary (approximately {word_count} words) that captures:
-        
-        1. The main purpose and scope of the bill
-        2. Key provisions that would affect property assessment
-        3. Potential timeline and implementation considerations
-        
-        Focus on clarity and conciseness while ensuring all critical points are covered.
-        """
-        
-        # Get summary from Claude
-        system_prompt = "You are a legislative analyst for a county assessor's office. You specialize in summarizing bills related to property assessment and taxation."
-        
-        response = get_ai_response(prompt, system_prompt, temperature=0.3)
-        
-        return {
-            "success": True,
-            "summary": response,
-            "bill_title": bill_title,
-            "summary_length": summary_length,
-            "word_count": len(response.split())
-        }
-        
-    except Exception as e:
-        logger.exception(f"Error generating bill summary: {str(e)}")
-        return {
-            "success": False,
-            "error": str(e)
-        }
-
-def extract_entities(bill_text: str, bill_title: Optional[str] = None, entity_types: Optional[List[str]] = None) -> Dict[str, Any]:
-    """
-    Extract entities from a bill
-    
-    Args:
-        bill_text (str): The text of the bill
-        bill_title (str, optional): The title of the bill
-        entity_types (List[str], optional): The types of entities to extract
-        
-    Returns:
-        Dict[str, Any]: The extraction results
-    """
-    try:
-        # Set default entity types if none provided
-        if not entity_types:
-            entity_types = ["organization", "person", "location", "date", "money", "property"]
-        
-        # Build the prompt
-        title_text = f"Title: {bill_title}\n\n" if bill_title else ""
-        
-        prompt = f"""
-        Extract the following entity types from this legislative bill:
-        {', '.join(entity_types)}
-        
-        {title_text}
-        Bill Text:
-        ```
-        {bill_text[:10000]}
-        ```
-        
-        For each entity found, please provide:
-        1. The entity text
-        2. The entity type
-        3. The context in which it appears (relevant sentence)
-        
-        Format the results as a JSON object with each entity type as a key and a list of extracted entities as the value.
-        Each entity should be an object with keys for "text", "context", and any additional relevant information.
-        
-        Example format:
-        {{
-            "organization": [
-                {{ "text": "Department of Revenue", "context": "The Department of Revenue shall establish guidelines..." }},
-                ...
-            ],
-            "property": [
-                {{ "text": "commercial real estate", "context": "Valuations for commercial real estate shall be adjusted..." }},
-                ...
-            ]
-        }}
-        """
-        
-        # Get entities from Claude
-        system_prompt = "You are an entity extraction specialist for a county assessor's office. You extract relevant entities from legislative bills related to property assessment and taxation."
-        
-        response = get_ai_response(prompt, system_prompt, temperature=0.1)
-        
-        # Parse the JSON response
-        import json
-        import re
-        
-        # Extract JSON object from response (it might be in a code block)
-        json_match = re.search(r'```(?:json)?(.*?)```', response, re.DOTALL)
-        if json_match:
-            json_str = json_match.group(1).strip()
-        else:
-            # If no code block, try to use the whole response
-            json_str = response.strip()
-        
-        # Parse JSON
-        try:
-            entities = json.loads(json_str)
-            return {
-                "success": True,
-                "entities": entities,
-                "bill_title": bill_title,
-                "entity_types": entity_types
-            }
-        except json.JSONDecodeError as e:
-            logger.error(f"Error parsing entities JSON: {str(e)}")
-            return {
-                "success": False,
-                "error": f"Error parsing entities: {str(e)}",
-                "raw_response": response
-            }
-        
-    except Exception as e:
-        logger.exception(f"Error extracting entities: {str(e)}")
-        return {
-            "success": False,
-            "error": str(e)
-        }
-
-def summarize_bill(bill_text: str, bill_title: Optional[str] = None, summary_type: str = "general", length: str = "medium") -> Dict[str, Any]:
-    """
-    Generate a summary of a bill with specific focus
-    
-    Args:
-        bill_text (str): The text of the bill
-        bill_title (str, optional): The title of the bill
-        summary_type (str): The type of summary (general, technical, public)
-        length (str): The length of the summary (short, medium, long)
-        
-    Returns:
-        Dict[str, Any]: The summary results
-    """
-    try:
-        # Map summary length to word count
-        word_counts = {
-            "short": 150,
-            "medium": 300,
-            "long": 500
-        }
-        
-        word_count = word_counts.get(length, 300)
-        
-        # Map summary type to audience/focus
-        audience_guidance = {
-            "general": "for a general audience with some knowledge of property assessment",
-            "technical": "for technical staff with expertise in property assessment and taxation",
-            "public": "for the general public with limited knowledge of property assessment processes"
-        }
-        
-        audience = audience_guidance.get(summary_type, audience_guidance["general"])
-        
-        # Build the prompt
-        title_text = f"Title: {bill_title}\n\n" if bill_title else ""
-        
-        prompt = f"""
-        Summarize this legislative bill:
-        
-        {title_text}
-        
-        Please provide a {length} summary (approximately {word_count} words) {audience}.
-        
-        Bill Text:
-        ```
-        {bill_text[:10000]}
-        ```
-        """
-        
-        # Get summary from Claude
-        system_prompt = "You are a legislative analyst for a county assessor's office. You specialize in summarizing bills related to property assessment and taxation for different audiences."
-        
-        response = get_ai_response(prompt, system_prompt, temperature=0.3)
-        
-        return {
-            "success": True,
-            "summary": response,
-            "bill_title": bill_title,
-            "summary_type": summary_type,
-            "length": length,
-            "word_count": len(response.split())
-        }
-        
-    except Exception as e:
-        logger.exception(f"Error generating bill summary: {str(e)}")
-        return {
-            "success": False,
-            "error": str(e)
-        }
-
-# Call this function to test the Anthropic API connection
-def test_anthropic_connection() -> Dict[str, Any]:
-    """
-    Test the connection to the Anthropic API
-    
-    Returns:
-        Dict[str, Any]: The test results
-    """
-    try:
-        # Get the API key
-        api_key = current_app.config.get('ANTHROPIC_API_KEY')
-        
-        if not api_key:
-            logger.error("Anthropic API key not configured")
-            return {
-                "success": False,
-                "error": "Anthropic API key not configured"
-            }
-        
-        # Get the model
-        model = current_app.config.get('ANTHROPIC_MODEL', "claude-3-5-sonnet-20241022")
-        
-        # Initialize the client
-        client = Anthropic(
-            api_key=api_key,
-        )
-        
-        # Send a simple test request
-        response = client.messages.create(
-            model=model,
-            messages=[
-                {
-                    "role": "user",
-                    "content": "Please respond with 'Connection successful!' if you can read this message."
-                }
-            ],
-            max_tokens=50
-        )
-        
-        # Check the response
-        if "Connection successful" in response.content[0].text:
-            return {
-                "success": True,
-                "message": "Connection to Anthropic API successful",
-                "model": model
-            }
-        else:
-            return {
-                "success": True,
-                "message": "Connection to Anthropic API successful, but unexpected response",
-                "response": response.content[0].text,
-                "model": model
-            }
-        
-    except Exception as e:
-        logger.exception(f"Error testing Anthropic connection: {str(e)}")
-        return {
-            "success": False,
-            "error": str(e)
+            "summary": f"Error: {str(e)}",
+            "impact_level": "Unknown",
+            "affected_property_classes": [],
+            "property_impacts": [],
+            "implementation_timeline": "Unknown"
         }

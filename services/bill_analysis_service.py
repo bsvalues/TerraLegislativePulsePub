@@ -1,204 +1,187 @@
 """
 Bill Analysis Service
 
-This module provides functionality for analyzing legislative bills.
+This service provides functions for analyzing legislative bills using the Anthropic API.
 """
 
 import logging
-from typing import Optional, Dict, Any
-
+import json
+import os
+from typing import Dict, Any, List, Optional
 from flask import current_app
-from services.anthropic_service import get_ai_response, generate_bill_summary, extract_entities, analyze_bill_impact, summarize_bill
+
 from models import LegislativeUpdate, db
+from services.anthropic_service import generate_bill_summary, extract_bill_entities, analyze_bill_impact
+from services.bill_search_service import get_bill_by_id
 
 logger = logging.getLogger(__name__)
 
-def analyze_tracked_bill(bill_id: str, analysis_type: str = 'impact', property_class: Optional[str] = None, source: Optional[str] = None) -> Dict[str, Any]:
+def analyze_tracked_bill(bill_id: str, analysis_type: str, source: Optional[str] = None) -> Dict[str, Any]:
     """
-    Analyze a tracked bill in the database
+    Analyze a tracked bill using AI
     
     Args:
-        bill_id (str): The ID of the bill to analyze
-        analysis_type (str): The type of analysis to perform (impact, summary, entities)
-        property_class (str, optional): Specific property class to analyze impact for
-        source (str, optional): The source of the bill
+        bill_id (str): The bill ID
+        analysis_type (str): Type of analysis - 'summary', 'entities', or 'impact'
+        source (str, optional): Source of the bill
         
     Returns:
-        Dict[str, Any]: The analysis results
+        dict: Analysis results
     """
-    try:
-        # Build the query
-        query = LegislativeUpdate.query.filter_by(bill_id=bill_id)
-        
-        # Add source filter if provided
-        if source:
-            query = query.filter_by(source=source)
-            
-        # Find the bill in the database
-        bill = query.first()
-        
-        if not bill:
-            return {
-                "success": False,
-                "error": f"Bill {bill_id} not found in the database"
-            }
-        
-        # Get the bill text from the appropriate source
-        bill_text = get_bill_text(bill)
-        
-        if not bill_text:
-            return {
-                "success": False,
-                "error": f"Could not retrieve text for bill {bill_id}"
-            }
-        
-        # Perform the requested analysis
-        if analysis_type == 'impact':
-            result = analyze_bill_impact(bill_text, bill.title, property_class)
-            
-            # Store the impact summary if the analysis was successful
-            if result['success'] and 'analysis' in result:
-                bill.impact_summary = result['analysis'][:1000]  # Store a truncated version
-                db.session.commit()
-                
-            return result
-            
-        elif analysis_type == 'summary':
-            return generate_bill_summary(bill_text, bill.title)
-            
-        elif analysis_type == 'entities':
-            return extract_entities(bill_text, bill.title)
-            
-        else:
-            return {
-                "success": False,
-                "error": f"Unknown analysis type: {analysis_type}"
-            }
+    # Get the bill
+    bill = get_bill_by_id(bill_id, source)
     
+    if not bill:
+        logger.error(f"Bill {bill_id} not found for analysis")
+        return {"error": f"Bill {bill_id} not found"}
+    
+    # Check if we have bill text
+    if not bill.get('description'):
+        logger.error(f"Bill {bill_id} has no text to analyze")
+        return {"error": f"Bill {bill_id} has no text to analyze"}
+    
+    bill_text = bill.get('description')
+    bill_title = bill.get('title')
+    
+    # Perform the requested analysis
+    try:
+        if analysis_type == 'summary':
+            result = generate_bill_summary(bill_text, bill_title)
+        elif analysis_type == 'entities':
+            result = extract_bill_entities(bill_text, bill_title)
+        elif analysis_type == 'impact':
+            result = analyze_bill_impact(bill_text, bill_title)
+        else:
+            return {"error": f"Unknown analysis type: {analysis_type}"}
+        
+        # Update the bill in the database with the analysis results
+        update_bill_with_analysis(bill.get('id'), analysis_type, result)
+        
+        return result
     except Exception as e:
         logger.exception(f"Error analyzing bill {bill_id}: {str(e)}")
-        return {
-            "success": False,
-            "error": str(e)
-        }
+        return {"error": f"Analysis failed: {str(e)}"}
 
-def get_bill_text(bill: LegislativeUpdate) -> Optional[str]:
+def categorize_bill(bill_id: str, source: Optional[str] = None) -> Dict[str, Any]:
     """
-    Get the text of a bill from the appropriate source
+    Categorize a bill based on affected property classes and impact level
     
     Args:
-        bill (LegislativeUpdate): The bill to get text for
+        bill_id (str): The bill ID
+        source (str, optional): Source of the bill
         
     Returns:
-        Optional[str]: The bill text, or None if it could not be retrieved
+        dict: Categorization results
     """
-    try:
-        # Use the source to determine how to get the bill text
-        source = bill.source.lower()
-        
-        if source == 'wa_legislature':
-            # Get text from WA Legislature website
-            from services.trackers.wa_legislature import get_bill_text_by_id
-            return get_bill_text_by_id(bill.bill_id)
-            
-        elif source == 'openstates':
-            # Get text from OpenStates API
-            from services.trackers.openstates import get_bill_text_by_id
-            return get_bill_text_by_id(bill.bill_id)
-            
-        elif source == 'legiscan':
-            # Get text from LegiScan API
-            from services.trackers.legiscan import get_bill_text_by_id
-            return get_bill_text_by_id(bill.bill_id)
-            
-        elif source == 'local_docs':
-            # Get text from local document repository
-            from services.trackers.local_docs import get_document_text_by_id
-            return get_document_text_by_id(bill.bill_id)
-            
-        else:
-            logger.warning(f"Unknown bill source: {source}")
-            return None
+    # Get the bill
+    bill = get_bill_by_id(bill_id, source)
     
-    except Exception as e:
-        logger.exception(f"Error getting text for bill {bill.bill_id}: {str(e)}")
-        return None
+    if not bill:
+        logger.error(f"Bill {bill_id} not found for categorization")
+        return {"error": f"Bill {bill_id} not found"}
+    
+    # Analyze the bill impact
+    impact_analysis = analyze_tracked_bill(bill_id, 'impact', source)
+    
+    if "error" in impact_analysis:
+        return impact_analysis
+    
+    # Extract property classes and impact level
+    property_classes = impact_analysis.get('affected_property_classes', [])
+    impact_level = impact_analysis.get('impact_level', 'Unknown')
+    
+    # Update the bill in the database
+    update_bill_classification(
+        bill.get('id'),
+        property_classes, 
+        impact_level
+    )
+    
+    return {
+        "bill_id": bill_id,
+        "affected_property_classes": property_classes,
+        "impact_level": impact_level
+    }
 
-def categorize_bill(bill_text: str, bill_title: Optional[str] = None) -> Dict[str, Any]:
+def batch_analyze_bills(bill_ids: List[str], analysis_type: str) -> Dict[str, Any]:
     """
-    Categorize a bill by topic and relevance to property assessment
+    Analyze multiple bills in batch
     
     Args:
-        bill_text (str): The text of the bill
-        bill_title (str, optional): The title of the bill
+        bill_ids (list): List of bill IDs
+        analysis_type (str): Type of analysis - 'summary', 'entities', or 'impact'
         
     Returns:
-        Dict[str, Any]: The categorization results
+        dict: Batch analysis results
+    """
+    results = {}
+    errors = []
+    
+    for bill_id in bill_ids:
+        logger.info(f"Analyzing bill {bill_id}")
+        result = analyze_tracked_bill(bill_id, analysis_type)
+        
+        if "error" in result:
+            errors.append({"bill_id": bill_id, "error": result["error"]})
+        else:
+            results[bill_id] = result
+    
+    return {
+        "results": results,
+        "errors": errors,
+        "total": len(bill_ids),
+        "successful": len(results),
+        "failed": len(errors)
+    }
+
+def update_bill_with_analysis(bill_id: int, analysis_type: str, analysis_result: Dict[str, Any]) -> None:
+    """
+    Update a bill with analysis results
+    
+    Args:
+        bill_id (int): The bill database ID
+        analysis_type (str): Type of analysis
+        analysis_result (dict): Analysis results
     """
     try:
-        # Build the prompt
-        title_text = f"Title: {bill_title}\n\n" if bill_title else ""
+        bill = LegislativeUpdate.query.get(bill_id)
         
-        prompt = f"""
-        Categorize this bill related to property assessment and taxation:
+        if not bill:
+            logger.error(f"Bill with ID {bill_id} not found in database")
+            return
         
-        {title_text}
-        Bill Text:
-        ```
-        {bill_text[:10000]}
-        ```
+        if analysis_type == 'impact':
+            # Extract impact summary
+            impact_summary = analysis_result.get('summary', '')
+            bill.impact_summary = impact_summary
         
-        Provide the following information in JSON format:
-        
-        1. Primary category (one of: "Property Tax", "Assessment Methodology", "Exemptions", "Appeals Process", "Administrative", "Unrelated")
-        
-        2. Relevance to county assessor operations (score from 0-10, where 10 is highly relevant)
-        
-        3. Affected property types (list all that apply from: "Residential", "Commercial", "Industrial", "Agricultural", "Vacant Land", "Public")
-        
-        4. Impact level (one of: "High", "Medium", "Low", "Unknown")
-        
-        5. Top 3 keywords that describe this bill
-        
-        Format your response as a JSON object with keys: "category", "relevance_score", "affected_property_types", "impact_level", and "keywords".
-        """
-        
-        # Get categorization from Claude
-        system_prompt = "You are a legislative analyst for a county assessor's office. You specialize in categorizing bills related to property assessment and taxation."
-        
-        response = get_ai_response(prompt, system_prompt, temperature=0.1)
-        
-        # Parse the JSON response
-        import json
-        import re
-        
-        # Extract JSON object from response (it might be in a code block)
-        json_match = re.search(r'```(?:json)?(.*?)```', response, re.DOTALL)
-        if json_match:
-            json_str = json_match.group(1).strip()
-        else:
-            # If no code block, try to use the whole response
-            json_str = response.strip()
-        
-        # Parse JSON
-        try:
-            categories = json.loads(json_str)
-            return {
-                "success": True,
-                "categories": categories,
-                "bill_title": bill_title
-            }
-        except json.JSONDecodeError as e:
-            logger.error(f"Error parsing categorization JSON: {str(e)}")
-            return {
-                "success": False,
-                "error": f"Error parsing categorization: {str(e)}",
-                "raw_response": response
-            }
-    
+        db.session.commit()
+        logger.info(f"Updated bill {bill.bill_id} with {analysis_type} analysis")
     except Exception as e:
-        logger.exception(f"Error categorizing bill: {str(e)}")
-        return {
-            "success": False,
-            "error": str(e)
-        }
+        db.session.rollback()
+        logger.exception(f"Error updating bill with analysis: {str(e)}")
+
+def update_bill_classification(bill_id: int, property_classes: List[str], impact_level: str) -> None:
+    """
+    Update a bill with property class and impact classification
+    
+    Args:
+        bill_id (int): The bill database ID
+        property_classes (list): List of affected property classes
+        impact_level (str): Impact level (High, Medium, Low)
+    """
+    try:
+        bill = LegislativeUpdate.query.get(bill_id)
+        
+        if not bill:
+            logger.error(f"Bill with ID {bill_id} not found in database")
+            return
+        
+        # Join property classes with comma
+        bill.affected_property_classes = ", ".join(property_classes)
+        
+        db.session.commit()
+        logger.info(f"Updated bill {bill.bill_id} with property class classification")
+    except Exception as e:
+        db.session.rollback()
+        logger.exception(f"Error updating bill classification: {str(e)}")
