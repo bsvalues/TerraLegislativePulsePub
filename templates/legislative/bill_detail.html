@@ -1,0 +1,173 @@
+{% extends "layout.html" %}
+
+{% block title %}Bill Detail - {{ bill.bill_id }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('web.dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('web.legislative_tracking') }}">Legislative Tracking</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ bill.bill_id }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1>{{ bill.bill_id }}</h1>
+                <span class="badge {% if bill.status and 'pass' in bill.status|lower %}bg-success{% elif bill.status and ('fail' in bill.status|lower or 'dead' in bill.status|lower) %}bg-danger{% else %}bg-secondary{% endif %} fs-6">
+                    {{ bill.status or 'Unknown Status' }}
+                </span>
+            </div>
+            <h2 class="fs-4 text-muted">{{ bill.title }}</h2>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="fs-5 mb-0">Bill Information</h3>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-3">Source</dt>
+                        <dd class="col-sm-9">{{ bill.source }}</dd>
+
+                        <dt class="col-sm-3">Last Action</dt>
+                        <dd class="col-sm-9">{{ bill.last_action or 'Unknown' }}</dd>
+
+                        <dt class="col-sm-3">Action Date</dt>
+                        <dd class="col-sm-9">{{ bill.last_action_date or bill.updated_at or 'Unknown' }}</dd>
+
+                        {% if bill.url or bill.link %}
+                        <dt class="col-sm-3">External Link</dt>
+                        <dd class="col-sm-9">
+                            <a href="{{ bill.url or bill.link }}" target="_blank" rel="noopener noreferrer">
+                                View on {{ bill.source }} website <i class="bi bi-box-arrow-up-right"></i>
+                            </a>
+                        </dd>
+                        {% endif %}
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="fs-5 mb-0">Bill Summary</h3>
+                </div>
+                <div class="card-body">
+                    {% if bill.description or bill.summary %}
+                    <p>{{ bill.description or bill.summary }}</p>
+                    {% else %}
+                    <p class="text-muted">No summary available for this bill.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if analysis %}
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="fs-5 mb-0">Impact Analysis</h3>
+                    <span class="badge bg-info">{{ analysis.confidence_level|title }} Confidence</span>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h4 class="fs-6">Potential Value Change:</h4>
+                        <div class="fs-4 {% if analysis.property_value_change and analysis.property_value_change.startswith('+') %}text-success{% elif analysis.property_value_change and analysis.property_value_change.startswith('-') %}text-danger{% else %}text-secondary{% endif %}">
+                            {{ analysis.property_value_change }}
+                        </div>
+                    </div>
+
+                    <h4 class="fs-6">Assessment Implications:</h4>
+                    <ul class="mb-4">
+                        {% for implication in analysis.assessment_implications %}
+                        <li>{{ implication }}</li>
+                        {% endfor %}
+                    </ul>
+
+                    <h4 class="fs-6">Recommendations:</h4>
+                    <ul class="mb-4">
+                        {% for recommendation in analysis.recommendations %}
+                        <li>{{ recommendation }}</li>
+                        {% endfor %}
+                    </ul>
+
+                    <div class="mt-4">
+                        <h4 class="fs-6">Full Analysis:</h4>
+                        <div class="analysis-text">
+                            {{ analysis.impact_analysis|safe }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="fs-5 mb-0">Actions</h3>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if not analysis %}
+                        <a href="{{ url_for('web.view_bill', bill_id=bill.bill_id, source=bill.source, analyze='true', property_class=property_class) }}" class="btn btn-primary">
+                            <i class="bi bi-graph-up"></i> Analyze Impact
+                        </a>
+                        {% endif %}
+                        
+                        <form action="{{ url_for('web.view_bill', bill_id=bill.bill_id, source=bill.source, analyze='true') }}" method="get" class="mt-3">
+                            <input type="hidden" name="bill_id" value="{{ bill.bill_id }}">
+                            <input type="hidden" name="source" value="{{ bill.source }}">
+                            <input type="hidden" name="analyze" value="true">
+                            
+                            <div class="mb-3">
+                                <label for="property_class" class="form-label">Analyze for Property Class:</label>
+                                <select name="property_class" id="property_class" class="form-select">
+                                    <option value="Residential" {% if property_class == 'Residential' %}selected{% endif %}>Residential</option>
+                                    <option value="Commercial" {% if property_class == 'Commercial' %}selected{% endif %}>Commercial</option>
+                                    <option value="Industrial" {% if property_class == 'Industrial' %}selected{% endif %}>Industrial</option>
+                                    <option value="Agricultural" {% if property_class == 'Agricultural' %}selected{% endif %}>Agricultural</option>
+                                    <option value="Vacant Land" {% if property_class == 'Vacant Land' %}selected{% endif %}>Vacant Land</option>
+                                    <option value="Public" {% if property_class == 'Public' %}selected{% endif %}>Public</option>
+                                </select>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-outline-primary">Update Analysis</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="fs-5 mb-0">Related Bills</h3>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid">
+                        <a href="{{ url_for('web.search_legislation', query=bill.title[:30]) }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-search"></i> Find Similar Bills
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+.analysis-text {
+    white-space: pre-line;
+}
+</style>
+{% endblock %}

@@ -1,161 +1,79 @@
 {% extends "layout.html" %}
 
-{% block title %}Dashboard - Benton County Assessor AI Platform{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container mt-4">
     <div class="row mb-4">
-        <div class="col-md-12">
-            <h1>Dashboard</h1>
-            <p class="lead">Welcome to the Benton County Assessor AI Platform</p>
+        <div class="col">
+            <h1>Benton County Assessor Dashboard</h1>
+            <p class="lead">Welcome to the AI-powered property assessment platform</p>
         </div>
     </div>
-    
-    <!-- Status Cards -->
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mb-4">
+        <div class="col">
+            <div class="card h-100 border-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Properties</h5>
+                    <h2 class="display-4">{{ metrics.property_count }}</h2>
+                    <p class="card-text">Tracked properties in the system</p>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="{{ url_for('web.property_list') }}" class="btn btn-sm btn-outline-primary">View Properties</a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 border-success">
+                <div class="card-body">
+                    <h5 class="card-title">Assessments</h5>
+                    <h2 class="display-4">{{ metrics.assessment_count }}</h2>
+                    <p class="card-text">Total property assessments</p>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="#" class="btn btn-sm btn-outline-success">View Assessments</a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 border-info">
+                <div class="card-body">
+                    <h5 class="card-title">Legislative Updates</h5>
+                    <h2 class="display-4">{{ metrics.legislative_updates }}</h2>
+                    <p class="card-text">Recent legislative changes</p>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="{{ url_for('web.legislative_tracking') }}" class="btn btn-sm btn-outline-info">Track Legislation</a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 border-warning">
+                <div class="card-body">
+                    <h5 class="card-title">AI Status</h5>
+                    <div class="text-center my-2">
+                        <span class="badge bg-success fs-6 p-2">Available</span>
+                    </div>
+                    <p class="card-text">Anthropic AI is active and ready</p>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="{{ url_for('web.activity_log') }}" class="btn btn-sm btn-outline-warning">View AI Logs</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card card-stat stat-primary h-100">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Properties</div>
-                            <div class="h5 mb-0 font-weight-bold">{{ property_count }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-building fa-2x text-muted"></i>
-                        </div>
-                    </div>
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Legislative Updates</h5>
+                    <a href="{{ url_for('web.legislative_tracking') }}" class="btn btn-sm btn-outline-primary">View All</a>
                 </div>
-            </div>
-        </div>
-        
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card card-stat stat-success h-100">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Assessments</div>
-                            <div class="h5 mb-0 font-weight-bold">{{ assessment_count }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-chart-line fa-2x text-muted"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card card-stat stat-info h-100">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">MCP Status</div>
-                            <div class="h5 mb-0 font-weight-bold">
-                                <span class="status-indicator status-active"></span>
-                                Active
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-server fa-2x text-muted"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card card-stat stat-warning h-100">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Legislative Updates</div>
-                            <div class="h5 mb-0 font-weight-bold">{{ legislative_updates|length }}</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-landmark fa-2x text-muted"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Main Content -->
-    <div class="row">
-        <!-- Agent Status -->
-        <div class="col-lg-4 mb-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="m-0 font-weight-bold">Agent Status</h5>
-                </div>
-                <div class="card-body">
-                    <div class="list-group">
-                        {% for agent_name, status in mcp_status.agents.items() %}
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <span class="status-indicator status-{% if status == 'active' %}active{% else %}inactive{% endif %}"></span>
-                                {{ agent_name }}
-                            </div>
-                            <span class="badge bg-{% if status == 'active' %}success{% else %}danger{% endif %}">{{ status }}</span>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Property Distribution -->
-        <div class="col-lg-8 mb-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="m-0 font-weight-bold">Sample Property Distribution</h5>
-                </div>
-                <div class="card-body">
-                    <div class="chart-container">
-                        <canvas id="propertyDistributionChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="row">
-        <!-- Quick Actions -->
-        <div class="col-lg-4 mb-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="m-0 font-weight-bold">Quick Actions</h5>
-                </div>
-                <div class="card-body">
-                    <div class="list-group">
-                        <a href="{{ url_for('web.property_validation') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-check-circle me-2"></i> Validate Property Data
-                        </a>
-                        <a href="{{ url_for('web.property_valuation') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-chart-line me-2"></i> Calculate Property Value
-                        </a>
-                        <a href="{{ url_for('web.legislative_impact') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-landmark me-2"></i> Analyze Legislative Impact
-                        </a>
-                        <a href="{{ url_for('web.user_query') }}" class="list-group-item list-group-item-action">
-                            <i class="fas fa-comments me-2"></i> Ask AI Assistant
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Recent Legislative Updates -->
-        <div class="col-lg-8 mb-4">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="m-0 font-weight-bold">Recent Legislative Updates</h5>
-                </div>
-                <div class="card-body">
-                    {% if legislative_updates %}
+                <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
                                     <th>Bill ID</th>
@@ -165,48 +83,88 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for update in legislative_updates %}
                                 <tr>
-                                    <td>{{ update.bill_id }}</td>
-                                    <td>{{ update.title }}</td>
-                                    <td>{{ update.status }}</td>
-                                    <td>
-                                        {% if update.impact_summary %}
-                                        <button class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ update.impact_summary }}">
-                                            View Impact
-                                        </button>
-                                        {% else %}
-                                        <span class="badge bg-secondary">Not Analyzed</span>
-                                        {% endif %}
-                                    </td>
+                                    <td>HB 1234</td>
+                                    <td>Property Tax Relief for Seniors</td>
+                                    <td><span class="badge bg-success">Passed</span></td>
+                                    <td><span class="badge bg-info">Medium</span></td>
                                 </tr>
-                                {% endfor %}
+                                <tr>
+                                    <td>SB 5678</td>
+                                    <td>Commercial Property Assessment Reform</td>
+                                    <td><span class="badge bg-secondary">In Committee</span></td>
+                                    <td><span class="badge bg-warning">High</span></td>
+                                </tr>
+                                <tr>
+                                    <td>HB 9101</td>
+                                    <td>Agricultural Land Valuation Changes</td>
+                                    <td><span class="badge bg-secondary">Introduced</span></td>
+                                    <td><span class="badge bg-secondary">Low</span></td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
-                    {% else %}
-                    <div class="alert alert-info mb-0">
-                        No recent legislative updates available.
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Activity</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for activity in metrics.recent_activity %}
+                        <li class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ activity.action }}</h6>
+                                <small class="text-muted">{{ activity.timestamp.strftime('%m/%d %H:%M') }}</small>
+                            </div>
+                            <small class="text-muted">{{ activity.details|truncate(40) }}</small>
+                        </li>
+                        {% else %}
+                        <li class="list-group-item">No recent activity</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="{{ url_for('web.activity_log') }}" class="btn btn-sm btn-outline-secondary">View All Activity</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <div class="card border-0 bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">Quick Actions</h5>
+                    <div class="row row-cols-1 row-cols-md-3 g-4">
+                        <div class="col">
+                            <div class="d-grid">
+                                <a href="{{ url_for('web.search_legislation') }}" class="btn btn-outline-primary">
+                                    <i class="bi bi-search"></i> Search Legislation
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="d-grid">
+                                <a href="{{ url_for('web.property_list') }}" class="btn btn-outline-primary">
+                                    <i class="bi bi-house"></i> View Properties
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="d-grid">
+                                <a href="{{ url_for('web.user_profile') }}" class="btn btn-outline-primary">
+                                    <i class="bi bi-gear"></i> Settings
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Sample data - in a real application, this would come from the backend
-        const propertyDistributionData = {
-            labels: ['Residential', 'Commercial', 'Industrial', 'Agricultural', 'Vacant Land', 'Public'],
-            values: [245, 78, 34, 57, 89, 12]
-        };
-        
-        // Create the property distribution chart
-        createDashboardSummaryChart('propertyDistributionChart', propertyDistributionData);
-    });
-</script>
 {% endblock %}

@@ -89,4 +89,12 @@ with app.app_context():
     from services.trackers import initialize_trackers
     initialize_trackers()
     
+    # Start the legislative tracker scheduler in background
+    try:
+        from scheduler import start_scheduler_thread
+        scheduler_thread = start_scheduler_thread()
+        logger.info("Legislative tracker scheduler started successfully")
+    except Exception as e:
+        logger.error(f"Error starting legislative tracker scheduler: {str(e)}")
+    
     logger.info("Benton County Assessor AI Platform initialized successfully")
