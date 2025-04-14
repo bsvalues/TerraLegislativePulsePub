@@ -1,0 +1,557 @@
+{% extends "layout.html" %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>System Settings</h1>
+            <p class="lead">Configure the Benton County Assessor AI Platform settings</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="list-group mb-4">
+                <a href="#api-keys" class="list-group-item list-group-item-action active" data-bs-toggle="list">API Keys</a>
+                <a href="#trackers" class="list-group-item list-group-item-action" data-bs-toggle="list">Tracker Configuration</a>
+                <a href="#ai-settings" class="list-group-item list-group-item-action" data-bs-toggle="list">AI Settings</a>
+                <a href="#notifications" class="list-group-item list-group-item-action" data-bs-toggle="list">Notifications</a>
+                <a href="#system" class="list-group-item list-group-item-action" data-bs-toggle="list">System</a>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="tab-content">
+                <!-- API Keys Tab -->
+                <div class="tab-pane fade show active" id="api-keys">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="fs-4 mb-0">API Keys</h2>
+                        </div>
+                        <div class="card-body">
+                            <p>Manage API keys for integrations with external services.</p>
+                            
+                            <!-- Anthropic API Key -->
+                            <form action="{{ url_for('web.update_api_key') }}" method="post" class="mb-4">
+                                <input type="hidden" name="service" value="anthropic">
+                                <h3 class="fs-5">Anthropic API Key</h3>
+                                <p class="text-muted small">Used for AI-powered bill analysis and impact assessment.</p>
+                                
+                                <div class="row g-2 align-items-center mb-2">
+                                    <div class="col-md-8">
+                                        <div class="input-group">
+                                            <input type="password" class="form-control" id="anthropic_key" name="api_key" 
+                                                placeholder="{% if api_status.anthropic.configured %}*************{% else %}Enter Anthropic API Key{% endif %}">
+                                            <button class="btn btn-outline-secondary" type="button" 
+                                                onclick="togglePassword('anthropic_key')">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        {% if api_status.anthropic.configured %}
+                                            {% if api_status.anthropic.status == 'valid' %}
+                                                <span class="badge bg-success">Valid</span>
+                                            {% elif api_status.anthropic.status == 'invalid' %}
+                                                <span class="badge bg-danger">Invalid</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Unknown</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">Not Configured</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex">
+                                    <button type="submit" class="btn btn-primary me-2">Save</button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="testApiKey('anthropic')">Test</button>
+                                </div>
+                                
+                                <div class="mt-2" id="anthropic-test-result"></div>
+                            </form>
+                            
+                            <hr>
+                            
+                            <!-- LegiScan API Key -->
+                            <form action="{{ url_for('web.update_api_key') }}" method="post" class="mb-4">
+                                <input type="hidden" name="service" value="legiscan">
+                                <h3 class="fs-5">LegiScan API Key</h3>
+                                <p class="text-muted small">Used to track legislation from LegiScan across all 50 states.</p>
+                                
+                                <div class="row g-2 align-items-center mb-2">
+                                    <div class="col-md-8">
+                                        <div class="input-group">
+                                            <input type="password" class="form-control" id="legiscan_key" name="api_key" 
+                                                placeholder="{% if api_status.legiscan.configured %}*************{% else %}Enter LegiScan API Key{% endif %}">
+                                            <button class="btn btn-outline-secondary" type="button" 
+                                                onclick="togglePassword('legiscan_key')">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        {% if api_status.legiscan.configured %}
+                                            {% if api_status.legiscan.status == 'valid' or api_status.legiscan.status == 'configured' %}
+                                                <span class="badge bg-success">Configured</span>
+                                            {% elif api_status.legiscan.status == 'invalid' %}
+                                                <span class="badge bg-danger">Invalid</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Unknown</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">Not Configured</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex">
+                                    <button type="submit" class="btn btn-primary me-2">Save</button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="testApiKey('legiscan')">Test</button>
+                                </div>
+                                
+                                <div class="mt-2" id="legiscan-test-result"></div>
+                            </form>
+                            
+                            <hr>
+                            
+                            <!-- OpenStates API Key -->
+                            <form action="{{ url_for('web.update_api_key') }}" method="post" class="mb-4">
+                                <input type="hidden" name="service" value="openstates">
+                                <h3 class="fs-5">OpenStates API Key</h3>
+                                <p class="text-muted small">Used to track legislation from the OpenStates API.</p>
+                                
+                                <div class="row g-2 align-items-center mb-2">
+                                    <div class="col-md-8">
+                                        <div class="input-group">
+                                            <input type="password" class="form-control" id="openstates_key" name="api_key" 
+                                                placeholder="{% if api_status.openstates.configured %}*************{% else %}Enter OpenStates API Key{% endif %}">
+                                            <button class="btn btn-outline-secondary" type="button" 
+                                                onclick="togglePassword('openstates_key')">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        {% if api_status.openstates.configured %}
+                                            {% if api_status.openstates.status == 'valid' or api_status.openstates.status == 'configured' %}
+                                                <span class="badge bg-success">Configured</span>
+                                            {% elif api_status.openstates.status == 'invalid' %}
+                                                <span class="badge bg-danger">Invalid</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Unknown</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">Not Configured</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex">
+                                    <button type="submit" class="btn btn-primary me-2">Save</button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="testApiKey('openstates')">Test</button>
+                                </div>
+                                
+                                <div class="mt-2" id="openstates-test-result"></div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tracker Configuration Tab -->
+                <div class="tab-pane fade" id="trackers">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="fs-4 mb-0">Tracker Configuration</h2>
+                        </div>
+                        <div class="card-body">
+                            <p>Configure the legislative tracker update schedule and search parameters.</p>
+                            
+                            <form action="{{ url_for('web.update_tracker_config') }}" method="post">
+                                <h3 class="fs-5 mb-3">Update Schedule</h3>
+                                
+                                <div class="mb-3">
+                                    <label for="wa_legislature_schedule" class="form-label">WA Legislature Update Frequency</label>
+                                    <select class="form-select" id="wa_legislature_schedule" name="wa_legislature_schedule">
+                                        <option value="daily">Daily</option>
+                                        <option value="weekly" selected>Weekly</option>
+                                        <option value="manual">Manual Only</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="openstates_schedule" class="form-label">OpenStates Update Frequency</label>
+                                    <select class="form-select" id="openstates_schedule" name="openstates_schedule">
+                                        <option value="daily">Daily</option>
+                                        <option value="weekly" selected>Weekly</option>
+                                        <option value="manual">Manual Only</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="legiscan_schedule" class="form-label">LegiScan Update Frequency</label>
+                                    <select class="form-select" id="legiscan_schedule" name="legiscan_schedule">
+                                        <option value="daily">Daily</option>
+                                        <option value="weekly" selected>Weekly</option>
+                                        <option value="manual">Manual Only</option>
+                                    </select>
+                                </div>
+                                
+                                <h3 class="fs-5 mb-3 mt-4">Search Terms</h3>
+                                
+                                <div class="mb-3">
+                                    <label for="search_terms" class="form-label">Default Search Terms</label>
+                                    <textarea class="form-control" id="search_terms" name="search_terms" rows="3">property tax, assessment, valuation, assessor, property value</textarea>
+                                    <div class="form-text">Enter comma-separated search terms used to find relevant bills.</div>
+                                </div>
+                                
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="include_local_docs" name="include_local_docs" checked>
+                                    <label class="form-check-label" for="include_local_docs">
+                                        Include local Benton County documents
+                                    </label>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">Save Configuration</button>
+                            </form>
+                            
+                            <hr>
+                            
+                            <h3 class="fs-5 mb-3">Manual Updates</h3>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button class="btn btn-outline-primary" onclick="runTracker('wa_legislature')">
+                                    Update WA Legislature
+                                </button>
+                                <button class="btn btn-outline-primary" onclick="runTracker('openstates')">
+                                    Update OpenStates
+                                </button>
+                                <button class="btn btn-outline-primary" onclick="runTracker('legiscan')">
+                                    Update LegiScan
+                                </button>
+                                <button class="btn btn-outline-primary" onclick="runTracker('local_docs')">
+                                    Update Local Documents
+                                </button>
+                                <button class="btn btn-primary" onclick="runTracker('all')">
+                                    Update All Trackers
+                                </button>
+                            </div>
+                            
+                            <div class="mt-3" id="tracker-update-result"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- AI Settings Tab -->
+                <div class="tab-pane fade" id="ai-settings">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="fs-4 mb-0">AI Settings</h2>
+                        </div>
+                        <div class="card-body">
+                            <p>Configure AI analysis settings for legislative bill processing.</p>
+                            
+                            <form action="{{ url_for('web.update_ai_settings') }}" method="post">
+                                <div class="mb-3">
+                                    <label for="ai_model" class="form-label">AI Model</label>
+                                    <select class="form-select" id="ai_model" name="ai_model">
+                                        <option value="claude-3-5-sonnet-20241022" selected>Claude 3.5 Sonnet (Recommended)</option>
+                                        <option value="claude-3-opus-20240229">Claude 3 Opus (Most capable, slower)</option>
+                                        <option value="claude-3-haiku-20240307">Claude 3 Haiku (Fastest, less detailed)</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="analysis_detail" class="form-label">Analysis Detail Level</label>
+                                    <select class="form-select" id="analysis_detail" name="analysis_detail">
+                                        <option value="brief">Brief</option>
+                                        <option value="standard" selected>Standard</option>
+                                        <option value="detailed">Detailed</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="property_focus" class="form-label">Default Property Class Focus</label>
+                                    <select class="form-select" id="property_focus" name="property_focus">
+                                        <option value="Residential" selected>Residential</option>
+                                        <option value="Commercial">Commercial</option>
+                                        <option value="Industrial">Industrial</option>
+                                        <option value="Agricultural">Agricultural</option>
+                                        <option value="Public">Public</option>
+                                        <option value="All">All Property Classes</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="auto_analyze" name="auto_analyze" checked>
+                                    <label class="form-check-label" for="auto_analyze">
+                                        Automatically analyze high-impact bills
+                                    </label>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">Save AI Settings</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Notifications Tab -->
+                <div class="tab-pane fade" id="notifications">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="fs-4 mb-0">Notification Settings</h2>
+                        </div>
+                        <div class="card-body">
+                            <p>Configure notifications for legislative updates and system events.</p>
+                            
+                            <form action="{{ url_for('web.update_notification_settings') }}" method="post">
+                                <h3 class="fs-5 mb-3">Email Notifications</h3>
+                                
+                                <div class="mb-3">
+                                    <label for="email_recipients" class="form-label">Email Recipients</label>
+                                    <input type="text" class="form-control" id="email_recipients" name="email_recipients" 
+                                        placeholder="email1@example.com, email2@example.com">
+                                    <div class="form-text">Comma-separated list of email addresses.</div>
+                                </div>
+                                
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="notify_high_impact" name="notify_high_impact" checked>
+                                    <label class="form-check-label" for="notify_high_impact">
+                                        Notify on high-impact bills
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="notify_status_change" name="notify_status_change" checked>
+                                    <label class="form-check-label" for="notify_status_change">
+                                        Notify on bill status changes
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="notify_system_issues" name="notify_system_issues" checked>
+                                    <label class="form-check-label" for="notify_system_issues">
+                                        Notify on system issues
+                                    </label>
+                                </div>
+                                
+                                <h3 class="fs-5 mb-3 mt-4">In-App Notifications</h3>
+                                
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="show_dashboard_alerts" name="show_dashboard_alerts" checked>
+                                    <label class="form-check-label" for="show_dashboard_alerts">
+                                        Show alerts on dashboard
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="show_browser_notifications" name="show_browser_notifications">
+                                    <label class="form-check-label" for="show_browser_notifications">
+                                        Enable browser notifications
+                                    </label>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">Save Notification Settings</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- System Tab -->
+                <div class="tab-pane fade" id="system">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="fs-4 mb-0">System Settings</h2>
+                        </div>
+                        <div class="card-body">
+                            <p>Configure system-wide settings and perform maintenance tasks.</p>
+                            
+                            <h3 class="fs-5 mb-3">Database Management</h3>
+                            
+                            <div class="d-flex flex-wrap gap-2 mb-4">
+                                <button class="btn btn-outline-primary" onclick="backupDatabase()">
+                                    Backup Database
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="optimizeDatabase()">
+                                    Optimize Database
+                                </button>
+                                <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#purgeDataModal">
+                                    Purge Old Data
+                                </button>
+                            </div>
+                            
+                            <h3 class="fs-5 mb-3">System Information</h3>
+                            
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <th>System Version</th>
+                                        <td>1.0.0</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Last Database Backup</th>
+                                        <td>Never</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Database Size</th>
+                                        <td>2.3 MB</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Last Tracker Update</th>
+                                        <td>{{ now.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            
+                            <div class="d-grid gap-2 mt-4">
+                                <button class="btn btn-warning" onclick="restartApplication()">
+                                    Restart Application
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Purge Data Modal -->
+<div class="modal fade" id="purgeDataModal" tabindex="-1" aria-labelledby="purgeDataModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="purgeDataModalLabel">Confirm Data Purge</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to purge old data? This action cannot be undone.</p>
+                <form id="purgeDataForm">
+                    <div class="mb-3">
+                        <label for="purgeAge" class="form-label">Purge data older than:</label>
+                        <select class="form-select" id="purgeAge" name="purgeAge">
+                            <option value="30">30 days</option>
+                            <option value="90">90 days</option>
+                            <option value="180">6 months</option>
+                            <option value="365">1 year</option>
+                        </select>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="purgeConfirm" name="purgeConfirm" required>
+                        <label class="form-check-label" for="purgeConfirm">
+                            I understand this action cannot be undone
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="purgeData()">Purge Data</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function togglePassword(elementId) {
+        const input = document.getElementById(elementId);
+        if (input.type === "password") {
+            input.type = "text";
+        } else {
+            input.type = "password";
+        }
+    }
+    
+    function testApiKey(service) {
+        const inputId = service + '_key';
+        const key = document.getElementById(inputId).value;
+        const resultDiv = document.getElementById(service + '-test-result');
+        
+        if (!key) {
+            resultDiv.innerHTML = '<div class="alert alert-warning">Please enter an API key to test</div>';
+            return;
+        }
+        
+        resultDiv.innerHTML = '<div class="spinner-border spinner-border-sm text-primary" role="status"></div> Testing...';
+        
+        // Make AJAX request to test the key
+        fetch('/api/test-api-key', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                service: service,
+                api_key: key
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                resultDiv.innerHTML = '<div class="alert alert-success">API key is valid!</div>';
+            } else {
+                resultDiv.innerHTML = `<div class="alert alert-danger">API key test failed: ${data.error}</div>`;
+            }
+        })
+        .catch(error => {
+            resultDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        });
+    }
+    
+    function runTracker(tracker) {
+        const resultDiv = document.getElementById('tracker-update-result');
+        
+        resultDiv.innerHTML = '<div class="alert alert-info"><div class="spinner-border spinner-border-sm" role="status"></div> Running tracker update...</div>';
+        
+        // Make AJAX request to run the tracker
+        fetch('/api/run-tracker', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                tracker: tracker
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                resultDiv.innerHTML = `<div class="alert alert-success">Tracker update completed successfully! Updated ${data.updated_count} items.</div>`;
+            } else {
+                resultDiv.innerHTML = `<div class="alert alert-danger">Tracker update failed: ${data.error}</div>`;
+            }
+        })
+        .catch(error => {
+            resultDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        });
+    }
+    
+    function backupDatabase() {
+        alert('Database backup functionality would be implemented here.');
+    }
+    
+    function optimizeDatabase() {
+        alert('Database optimization functionality would be implemented here.');
+    }
+    
+    function purgeData() {
+        const confirmCheck = document.getElementById('purgeConfirm');
+        if (!confirmCheck.checked) {
+            alert('Please confirm that you understand this action cannot be undone.');
+            return;
+        }
+        
+        const age = document.getElementById('purgeAge').value;
+        alert(`Data purge functionality would be implemented here (${age} days).`);
+        $('#purgeDataModal').modal('hide');
+    }
+    
+    function restartApplication() {
+        if (confirm('Are you sure you want to restart the application?')) {
+            alert('Application restart functionality would be implemented here.');
+        }
+    }
+</script>
+{% endblock %}

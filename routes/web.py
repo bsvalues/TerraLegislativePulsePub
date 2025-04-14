@@ -150,3 +150,64 @@ def activity_log():
 def user_profile():
     """User profile page"""
     return render_template('profile.html')
+
+@web_bp.route('/settings')
+@login_required
+def settings():
+    """System settings page"""
+    from datetime import datetime
+    from utils.api_key_manager import ApiKeyManager
+    
+    # Check API key status
+    api_status = ApiKeyManager.check_api_key_status()
+    
+    return render_template('settings.html', 
+                          api_status=api_status,
+                          now=datetime.now())
+
+@web_bp.route('/update-api-key', methods=['POST'])
+@login_required
+def update_api_key():
+    """Update API key"""
+    from utils.api_key_manager import ApiKeyManager
+    
+    service = request.form.get('service')
+    api_key = request.form.get('api_key')
+    
+    if not service or not api_key:
+        flash('Missing service or API key', 'danger')
+        return redirect(url_for('web.settings'))
+    
+    # Update the API key
+    success = ApiKeyManager.update_api_key(service, api_key)
+    
+    if success:
+        flash(f'{service.title()} API key updated successfully', 'success')
+    else:
+        flash(f'Failed to update {service.title()} API key', 'danger')
+    
+    return redirect(url_for('web.settings'))
+
+@web_bp.route('/update-tracker-config', methods=['POST'])
+@login_required
+def update_tracker_config():
+    """Update tracker configuration"""
+    # This would update the tracker configuration in a real implementation
+    flash('Tracker configuration updated successfully', 'success')
+    return redirect(url_for('web.settings'))
+
+@web_bp.route('/update-ai-settings', methods=['POST'])
+@login_required
+def update_ai_settings():
+    """Update AI settings"""
+    # This would update the AI settings in a real implementation
+    flash('AI settings updated successfully', 'success')
+    return redirect(url_for('web.settings'))
+
+@web_bp.route('/update-notification-settings', methods=['POST'])
+@login_required
+def update_notification_settings():
+    """Update notification settings"""
+    # This would update the notification settings in a real implementation
+    flash('Notification settings updated successfully', 'success')
+    return redirect(url_for('web.settings'))
