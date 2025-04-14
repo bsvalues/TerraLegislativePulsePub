@@ -20,6 +20,9 @@
                 </div>
                 <div class="card-body">
                     <form method="POST" class="needs-validation" novalidate>
+                        <!-- Basic Property Information -->
+                        <h6 class="mt-3 mb-3">Basic Property Information</h6>
+                        
                         <div class="mb-3">
                             <label for="parcel_id" class="form-label">Parcel ID</label>
                             <input type="text" class="form-control" id="parcel_id" name="parcel_id" 
@@ -31,62 +34,317 @@
                             </div>
                         </div>
                         
-                        <div class="mb-3">
-                            <label for="property_address" class="form-label">Property Address</label>
-                            <input type="text" class="form-control" id="property_address" name="property_address"
-                                   value="{{ property_data.property_address if property_data else '' }}"
-                                   placeholder="123 Example St, Kennewick, WA" required>
-                            <div class="invalid-feedback">
-                                Please provide a property address.
+                        <!-- Property Address Information -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="property_address" class="form-label">Street Address</label>
+                                <input type="text" class="form-control" id="property_address" name="property_address"
+                                       value="{{ property_data.property_address if property_data else '' }}"
+                                       placeholder="123 Example St" required>
+                                <div class="invalid-feedback">
+                                    Please provide a property address.
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="mb-3">
-                            <label for="assessment_year" class="form-label">Assessment Year</label>
-                            <input type="number" class="form-control" id="assessment_year" name="assessment_year"
-                                   value="{{ property_data.assessment_year if property_data else '2025' }}"
-                                   min="2020" max="2026" required>
-                            <div class="invalid-feedback">
-                                Please provide a valid assessment year (2020-2026).
+                        <div class="row">
+                            <div class="col-md-5 mb-3">
+                                <label for="property_city" class="form-label">City</label>
+                                <input type="text" class="form-control" id="property_city" name="property_city"
+                                       value="{{ property_data.property_city if property_data else 'Kennewick' }}"
+                                       placeholder="Kennewick" required>
+                                <div class="invalid-feedback">
+                                    Please provide a city.
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-3 mb-3">
+                                <label for="property_state" class="form-label">State</label>
+                                <input type="text" class="form-control" id="property_state" name="property_state"
+                                       value="{{ property_data.property_state if property_data else 'WA' }}"
+                                       placeholder="WA" required readonly>
+                                <div class="form-text">Restricted to Washington State</div>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="property_zip" class="form-label">ZIP Code</label>
+                                <input type="text" class="form-control" id="property_zip" name="property_zip"
+                                       value="{{ property_data.property_zip if property_data else '' }}"
+                                       placeholder="99336" required pattern="^\d{5}(-\d{4})?$">
+                                <div class="form-text">Benton County ZIP codes typically start with 993</div>
+                                <div class="invalid-feedback">
+                                    Please provide a valid 5-digit ZIP code.
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="mb-3">
-                            <label for="assessed_value" class="form-label">Assessed Value</label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                <input type="number" class="form-control" id="assessed_value" name="assessed_value"
-                                       value="{{ property_data.assessed_value if property_data else '' }}"
-                                       min="1000" step="0.01" required>
+                        <!-- Assessment Information -->
+                        <h6 class="mt-4 mb-3">Assessment Information</h6>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="assessment_year" class="form-label">Assessment Year</label>
+                                <input type="number" class="form-control" id="assessment_year" name="assessment_year"
+                                       value="{{ property_data.assessment_year if property_data else '2025' }}"
+                                       min="2020" max="2026" required>
+                                <div class="invalid-feedback">
+                                    Please provide a valid assessment year (2020-2026).
+                                </div>
                             </div>
-                            <div class="form-text">Minimum value: $1,000.00</div>
-                            <div class="invalid-feedback">
-                                Please provide a valid assessed value.
+                            
+                            <div class="col-md-8 mb-3">
+                                <label for="property_class" class="form-label">Property Class</label>
+                                <select class="form-select" id="property_class" name="property_class" required onchange="showPropertyFields()">
+                                    <option value="" selected disabled>Select property class</option>
+                                    {% for class_name in property_classes %}
+                                    <option value="{{ class_name }}" {% if property_data and property_data.property_class == class_name %}selected{% endif %}>
+                                        {{ class_name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select a property class.
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="mb-3">
-                            <label for="property_class" class="form-label">Property Class</label>
-                            <select class="form-select" id="property_class" name="property_class" required>
-                                <option value="" selected disabled>Select property class</option>
-                                {% for class_name in property_classes %}
-                                <option value="{{ class_name }}" {% if property_data and property_data.property_class == class_name %}selected{% endif %}>
-                                    {{ class_name }}
-                                </option>
-                                {% endfor %}
+                        <div class="mb-3" id="property_class_code_container">
+                            <label for="property_class_code" class="form-label">Property Class Code</label>
+                            <select class="form-select" id="property_class_code" name="property_class_code">
+                                <option value="" selected disabled>Select property class first</option>
                             </select>
-                            <div id="class_codes_display" class="form-text d-none"></div>
-                            <div class="invalid-feedback">
-                                Please select a property class.
+                            <div class="form-text">Select the specific code for this property class</div>
+                        </div>
+                        
+                        <!-- Valuation Information -->
+                        <h6 class="mt-4 mb-3">Valuation Information</h6>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="assessed_value" class="form-label">Assessed Value</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="assessed_value" name="assessed_value"
+                                           value="{{ property_data.assessed_value if property_data else '' }}"
+                                           min="1000" step="0.01" required>
+                                </div>
+                                <div class="form-text">Minimum value: $1,000.00</div>
+                                <div class="invalid-feedback">
+                                    Please provide a valid assessed value.
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="land_value" class="form-label">Land Value</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="land_value" name="land_value"
+                                           value="{{ property_data.land_value if property_data else '' }}"
+                                           min="0" step="0.01">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="improvement_value" class="form-label">Improvement Value</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="improvement_value" name="improvement_value"
+                                           value="{{ property_data.improvement_value if property_data else '' }}"
+                                           min="0" step="0.01">
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="d-grid gap-2">
+                        <div class="mb-3">
+                            <label for="land_area" class="form-label">Land Area (sq ft)</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="land_area" name="land_area"
+                                       value="{{ property_data.land_area if property_data else '' }}"
+                                       min="0" step="0.01">
+                                <span class="input-group-text">sq ft</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Residential Property Fields -->
+                        <div id="residential_fields" class="property-type-fields d-none">
+                            <h6 class="mt-4 mb-3">Residential Property Details</h6>
+                            
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="bedrooms" class="form-label">Bedrooms</label>
+                                    <input type="number" class="form-control" id="bedrooms" name="bedrooms"
+                                           value="{{ property_data.bedrooms if property_data else '' }}"
+                                           min="0" step="1">
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label for="bathrooms" class="form-label">Bathrooms</label>
+                                    <input type="number" class="form-control" id="bathrooms" name="bathrooms"
+                                           value="{{ property_data.bathrooms if property_data else '' }}"
+                                           min="0" step="0.5">
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label for="year_built" class="form-label">Year Built</label>
+                                    <input type="number" class="form-control" id="year_built" name="year_built"
+                                           value="{{ property_data.year_built if property_data else '' }}"
+                                           min="1850" max="2025">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Commercial Property Fields -->
+                        <div id="commercial_fields" class="property-type-fields d-none">
+                            <h6 class="mt-4 mb-3">Commercial Property Details</h6>
+                            
+                            <div class="mb-3">
+                                <label for="building_area" class="form-label">Building Area (sq ft)</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="building_area" name="building_area"
+                                           value="{{ property_data.building_area if property_data else '' }}"
+                                           min="0" step="0.01">
+                                    <span class="input-group-text">sq ft</span>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="income_approach_check" onchange="toggleIncomeFields()">
+                                    <label class="form-check-label" for="income_approach_check">
+                                        Income Approach Valuation
+                                    </label>
+                                    <input type="hidden" id="income_approach" name="income_approach" value="No">
+                                </div>
+                            </div>
+                            
+                            <div id="income_fields" class="d-none">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="cap_rate" class="form-label">Capitalization Rate (%)</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="cap_rate" name="cap_rate"
+                                                   value="{{ property_data.cap_rate if property_data else '' }}"
+                                                   min="0" max="100" step="0.1">
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label for="annual_income" class="form-label">Annual Income</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="annual_income" name="annual_income"
+                                                   value="{{ property_data.annual_income if property_data else '' }}"
+                                                   min="0" step="0.01">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-check-circle me-2"></i> Validate Property Data
                             </button>
                         </div>
                     </form>
+                    
+                    <script>
+                        // Object to store property class codes
+                        const propertyClassCodes = {{ property_classifications|tojson }};
+                        
+                        // Function to show fields based on property class
+                        function showPropertyFields() {
+                            // Hide all property-specific fields first
+                            document.querySelectorAll('.property-type-fields').forEach(el => {
+                                el.classList.add('d-none');
+                            });
+                            
+                            // Get the selected property class
+                            const propertyClass = document.getElementById('property_class').value;
+                            
+                            // Show property-specific fields based on selection
+                            if (propertyClass === 'Residential') {
+                                document.getElementById('residential_fields').classList.remove('d-none');
+                            } else if (propertyClass === 'Commercial') {
+                                document.getElementById('commercial_fields').classList.remove('d-none');
+                            }
+                            
+                            // Update property class codes dropdown
+                            updatePropertyClassCodes(propertyClass);
+                        }
+                        
+                        // Function to update property class codes dropdown
+                        function updatePropertyClassCodes(propertyClass) {
+                            const codeSelect = document.getElementById('property_class_code');
+                            codeSelect.innerHTML = '';
+                            
+                            // Add default option
+                            const defaultOption = document.createElement('option');
+                            defaultOption.value = '';
+                            defaultOption.text = 'Select a code';
+                            defaultOption.selected = true;
+                            defaultOption.disabled = true;
+                            codeSelect.appendChild(defaultOption);
+                            
+                            // Add options for the selected property class
+                            if (propertyClass && propertyClassCodes[propertyClass]) {
+                                propertyClassCodes[propertyClass].forEach(code => {
+                                    const option = document.createElement('option');
+                                    option.value = code;
+                                    option.text = code;
+                                    codeSelect.appendChild(option);
+                                });
+                            } else {
+                                // No property class selected or no codes available
+                                const noCodesOption = document.createElement('option');
+                                noCodesOption.value = '';
+                                noCodesOption.text = 'No codes available';
+                                noCodesOption.disabled = true;
+                                codeSelect.appendChild(noCodesOption);
+                            }
+                        }
+                        
+                        // Function to toggle income approach fields
+                        function toggleIncomeFields() {
+                            const incomeCheck = document.getElementById('income_approach_check');
+                            const incomeFields = document.getElementById('income_fields');
+                            const incomeValue = document.getElementById('income_approach');
+                            
+                            if (incomeCheck.checked) {
+                                incomeFields.classList.remove('d-none');
+                                incomeValue.value = 'Yes';
+                            } else {
+                                incomeFields.classList.add('d-none');
+                                incomeValue.value = 'No';
+                            }
+                        }
+                        
+                        // Initialize the form on page load
+                        document.addEventListener('DOMContentLoaded', function() {
+                            showPropertyFields();
+                            
+                            // If there's a previously selected property class code, select it
+                            const savedCode = "{{ property_data.property_class_code if property_data else '' }}";
+                            if (savedCode) {
+                                setTimeout(() => {
+                                    const codeSelect = document.getElementById('property_class_code');
+                                    for (let i = 0; i < codeSelect.options.length; i++) {
+                                        if (codeSelect.options[i].value === savedCode) {
+                                            codeSelect.options[i].selected = true;
+                                            break;
+                                        }
+                                    }
+                                }, 100);
+                            }
+                            
+                            // Set income approach checkbox if previously set
+                            if ("{{ property_data.income_approach if property_data else 'No' }}" === "Yes") {
+                                document.getElementById('income_approach_check').checked = true;
+                                toggleIncomeFields();
+                            }
+                        });
+                    </script>
                 </div>
             </div>
         </div>
@@ -133,6 +391,17 @@
                                     <ul class="list-group">
                                         {% for warning in validation_results.warnings %}
                                         <li class="list-group-item list-group-item-warning">{{ warning }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+                            
+                            {% if validation_results.info and validation_results.info|length > 0 %}
+                                <div class="mb-3">
+                                    <h6 class="text-info">Information:</h6>
+                                    <ul class="list-group">
+                                        {% for info_msg in validation_results.info %}
+                                        <li class="list-group-item list-group-item-info">{{ info_msg }}</li>
                                         {% endfor %}
                                     </ul>
                                 </div>

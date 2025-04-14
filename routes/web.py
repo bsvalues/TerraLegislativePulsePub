@@ -51,10 +51,38 @@ def property_validation():
         property_data = {
             'parcel_id': request.form.get('parcel_id'),
             'property_address': request.form.get('property_address'),
+            'property_city': request.form.get('property_city'),
+            'property_state': request.form.get('property_state', 'WA'),
+            'property_zip': request.form.get('property_zip'),
             'assessment_year': int(request.form.get('assessment_year')) if request.form.get('assessment_year') else None,
             'assessed_value': float(request.form.get('assessed_value')) if request.form.get('assessed_value') else None,
-            'property_class': request.form.get('property_class')
+            'land_value': float(request.form.get('land_value')) if request.form.get('land_value') else None,
+            'improvement_value': float(request.form.get('improvement_value')) if request.form.get('improvement_value') else None,
+            'property_class': request.form.get('property_class'),
+            'property_class_code': request.form.get('property_class_code')
         }
+        
+        # Add property-class specific fields
+        if property_data['property_class'] == 'Residential':
+            property_data.update({
+                'bedrooms': int(request.form.get('bedrooms')) if request.form.get('bedrooms') else None,
+                'bathrooms': float(request.form.get('bathrooms')) if request.form.get('bathrooms') else None,
+                'year_built': int(request.form.get('year_built')) if request.form.get('year_built') else None,
+                'land_area': float(request.form.get('land_area')) if request.form.get('land_area') else None
+            })
+        elif property_data['property_class'] == 'Commercial':
+            property_data.update({
+                'building_area': float(request.form.get('building_area')) if request.form.get('building_area') else None,
+                'land_area': float(request.form.get('land_area')) if request.form.get('land_area') else None,
+                'income_approach': request.form.get('income_approach'),
+                'cap_rate': float(request.form.get('cap_rate')) if request.form.get('cap_rate') else None,
+                'annual_income': float(request.form.get('annual_income')) if request.form.get('annual_income') else None
+            })
+        else:
+            # For other property classes, add common fields
+            property_data.update({
+                'land_area': float(request.form.get('land_area')) if request.form.get('land_area') else None
+            })
         
         # Get the MCP instance
         mcp = current_app.config['MCP']
@@ -70,20 +98,25 @@ def property_validation():
         if response.get('success'):
             validation_results = response.get('data', {}).get('validation_results')
             if validation_results and not validation_results.get('has_errors'):
-                flash('Property data validation successful!', 'success')
+                if validation_results.get('has_warnings'):
+                    flash('Property data validation passed with warnings.', 'warning')
+                else:
+                    flash('Property data validation successful!', 'success')
             elif validation_results:
-                flash('Property data has validation errors.', 'warning')
+                flash('Property data has validation errors.', 'danger')
         else:
             flash(f"Error validating property data: {response.get('error')}", 'danger')
     
     # Get property classifications from config
-    property_classes = current_app.config.get('PROPERTY_CLASSIFICATIONS', {}).keys()
+    property_classifications = current_app.config.get('PROPERTY_CLASSIFICATIONS', {})
+    property_classes = property_classifications.keys()
     
     return render_template(
         'property_validation.html',
         property_data=property_data,
         validation_results=validation_results,
-        property_classes=property_classes
+        property_classes=property_classes,
+        property_classifications=property_classifications
     )
 
 @web_bp.route('/property-valuation', methods=['GET', 'POST'])
