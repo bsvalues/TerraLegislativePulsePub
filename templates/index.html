@@ -4,56 +4,14 @@
 
 {% block content %}
 <div class="px-4 py-5 text-center position-relative" style="min-height: 500px; overflow: hidden;">
-    <!-- Background color -->
-    <div class="position-absolute top-0 start-0 end-0 bottom-0" style="background-color: #1a3a5f; z-index: -3;"></div>
-    
-    <!-- Background texture -->
-    <div class="position-absolute top-0 start-0 end-0 bottom-0" style="background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-    background-size: 20px 20px;
-    opacity: 0.5;
-    z-index: -2;"></div>
-    
-    <!-- Background overlay gradient -->
-    <div class="position-absolute top-0 start-0 end-0 bottom-0" style="background: radial-gradient(ellipse at center, rgba(13, 110, 253, 0.1) 0%, rgba(33, 37, 41, 0.8) 100%); z-index: -1;"></div>
-    
-    <!-- Washington State Capitol Building Silhouette -->
-    <div class="position-absolute top-0 start-0 end-0 bottom-0 d-flex justify-content-center" style="z-index: -1; opacity: 0.25; overflow: hidden;">
-        <!-- Main Capitol Building Structure - Base -->
-        <div style="position: relative; width: 700px; height: 500px; margin-top: 50px;">
-            <!-- Main Building Body -->
-            <div style="position: absolute; bottom: 0; left: 100px; right: 100px; height: 180px; background-color: rgba(255, 255, 255, 0.8);"></div>
-            
-            <!-- Left Wing -->
-            <div style="position: absolute; bottom: 0; left: 0; width: 120px; height: 160px; background-color: rgba(255, 255, 255, 0.7);"></div>
-            
-            <!-- Right Wing -->
-            <div style="position: absolute; bottom: 0; right: 0; width: 120px; height: 160px; background-color: rgba(255, 255, 255, 0.7);"></div>
-            
-            <!-- Dome Base -->
-            <div style="position: absolute; bottom: 180px; left: 50%; transform: translateX(-50%); width: 300px; height: 40px; background-color: rgba(255, 255, 255, 0.85); border-radius: 5px 5px 0 0;"></div>
-            
-            <!-- Main Dome -->
-            <div style="position: absolute; bottom: 220px; left: 50%; transform: translateX(-50%); width: 260px; height: 180px; border-radius: 130px 130px 0 0; background: radial-gradient(ellipse at center bottom, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.2) 80%);"></div>
-            
-            <!-- Dome Lantern -->
-            <div style="position: absolute; bottom: 400px; left: 50%; transform: translateX(-50%); width: 40px; height: 60px; background-color: rgba(255, 255, 255, 0.9);"></div>
-            
-            <!-- Front Steps -->
-            <div style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 300px; height: 30px; background-color: rgba(255, 255, 255, 0.6);"></div>
-            
-            <!-- Columns -->
-            <div class="d-flex justify-content-center" style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 280px; height: 150px;">
-                <div style="flex: 1; border-radius: 4px 4px 0 0; background-color: rgba(255, 255, 255, 0.8); margin: 0 5px;"></div>
-                <div style="flex: 1; border-radius: 4px 4px 0 0; background-color: rgba(255, 255, 255, 0.8); margin: 0 5px;"></div>
-                <div style="flex: 1; border-radius: 4px 4px 0 0; background-color: rgba(255, 255, 255, 0.8); margin: 0 5px;"></div>
-                <div style="flex: 1; border-radius: 4px 4px 0 0; background-color: rgba(255, 255, 255, 0.8); margin: 0 5px;"></div>
-                <div style="flex: 1; border-radius: 4px 4px 0 0; background-color: rgba(255, 255, 255, 0.8); margin: 0 5px;"></div>
-                <div style="flex: 1; border-radius: 4px 4px 0 0; background-color: rgba(255, 255, 255, 0.8); margin: 0 5px;"></div>
-            </div>
-        </div>
-    </div>
+    <!-- Washington State Capitol Background Image -->
+    <div class="position-absolute top-0 start-0 end-0 bottom-0" style="
+        background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
+        url('https://live.staticflickr.com/65535/48778735436_93d192c729_b.jpg');
+        background-size: cover;
+        background-position: center;
+        z-index: -1;
+    "></div>
     
     <div class="position-relative py-5" style="z-index: 1;">
         <div class="bg-dark bg-opacity-75 mx-auto p-4 rounded-4" style="max-width: 800px;">
