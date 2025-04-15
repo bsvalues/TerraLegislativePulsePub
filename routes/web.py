@@ -100,7 +100,6 @@ def bill_detail(bill_id):
                           analysis=analysis)
 
 @web_bp.route('/property-impact')
-@login_required
 def property_impact():
     """Show property impact analysis tool"""
     # Get property classes from config
@@ -137,7 +136,6 @@ def relevant_bills():
                           current_keywords=keywords)
 
 @web_bp.route('/property-validation', methods=['GET', 'POST'])
-@login_required
 def property_validation():
     """Validate property data according to Washington State standards"""
     property_data = None
@@ -195,7 +193,6 @@ def property_validation():
                           property_classes=property_classes)
 
 @web_bp.route('/property-valuation', methods=['GET', 'POST'])
-@login_required
 def property_valuation():
     """Calculate property value using multiple approaches"""
     property_data = None

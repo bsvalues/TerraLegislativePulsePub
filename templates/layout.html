@@ -33,13 +33,7 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    {% if current_user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'web.dashboard' %}active{% endif %}" 
-                           href="{{ url_for('web.dashboard') }}">
-                           <i class="fas fa-tachometer-alt me-1"></i> Dashboard
-                        </a>
-                    </li>
+                    <!-- Property and legislative links accessible without login -->
                     <li class="nav-item">
                         <a class="nav-link {% if request.endpoint == 'web.property_validation' %}active{% endif %}" 
                            href="{{ url_for('web.property_validation') }}">
@@ -53,9 +47,18 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'web.legislative_impact' %}active{% endif %}" 
-                           href="{{ url_for('web.legislative_impact') }}">
+                        <a class="nav-link {% if request.endpoint == 'web.property_impact' %}active{% endif %}" 
+                           href="{{ url_for('web.property_impact') }}">
                            <i class="fas fa-landmark me-1"></i> Legislative Impact
+                        </a>
+                    </li>
+                    
+                    <!-- Links that require authentication -->
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'web.dashboard' %}active{% endif %}" 
+                           href="{{ url_for('web.dashboard') }}">
+                           <i class="fas fa-tachometer-alt me-1"></i> Dashboard
                         </a>
                     </li>
                     <li class="nav-item">
