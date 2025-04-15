@@ -105,8 +105,13 @@ def property_impact():
     # Get property classes from config
     property_classes = current_app.config.get('PROPERTY_CLASSIFICATIONS', {})
     
-    # Get recent bills
-    recent_bills = get_all_tracked_bills(limit=10)
+    # Get recent bills with error handling for database connection issues
+    try:
+        recent_bills = get_all_tracked_bills(limit=10)
+    except Exception as e:
+        logger.error(f"Database error when fetching bills: {str(e)}")
+        recent_bills = []
+        flash("Unable to retrieve recent legislative bills. Please try again later.", "warning")
     
     return render_template('property_impact.html',
                           property_classes=property_classes,

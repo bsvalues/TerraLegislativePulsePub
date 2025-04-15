@@ -24,6 +24,18 @@ def create_app(config_class=Config):
     # Set up logging
     logging.basicConfig(level=getattr(logging, app.config['LOG_LEVEL']))
     
+    # Set up SQLAlchemy engine options for better connection reliability
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_pre_ping': True,  # Enable connection verification before usage
+        'pool_recycle': 300,    # Recycle connections every 5 minutes
+        'connect_args': {
+            'connect_timeout': 10,  # Connection timeout in seconds
+            'application_name': 'benton_county_assessor'  # Helps identify the application in database logs
+        },
+        'pool_size': 10,        # Maximum number of connections to keep
+        'max_overflow': 15     # Maximum number of connections above pool_size
+    }
+    
     # Initialize extensions with the app
     db.init_app(app)
     login_manager.init_app(app)
