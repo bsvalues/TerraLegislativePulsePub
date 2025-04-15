@@ -169,9 +169,9 @@ def property_validation():
         # Create an MCP message to send to the validation agent
         from mcp.message_protocol import MCPMessage
         message = MCPMessage(
-            type='property_validation',
+            message_type='property_validation',
             sender='web',
-            values={'property_data': property_data}
+            data={'property_data': property_data}
         )
         
         # Process the message and get the response
@@ -224,9 +224,9 @@ def property_valuation():
         # Create an MCP message to send to the valuation agent
         from mcp.message_protocol import MCPMessage
         message = MCPMessage(
-            type='property_valuation',
+            message_type='property_valuation',
             sender='web',
-            values={
+            data={
                 'property_data': property_data,
                 'approach': approach
             }

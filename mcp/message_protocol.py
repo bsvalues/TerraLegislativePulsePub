@@ -1,67 +1,65 @@
+"""
+Message Protocol for the Master Control Program
+
+This module defines the message format for communication between components in the
+Benton County Assessor AI Platform.
+"""
+
 class MCPMessage:
     """
-    Standard message format for communication between the MCP and agents.
+    Message class for communication between components in the AI platform
+    
+    Attributes:
+        type (str): The type of message (e.g., 'property_validation', 'property_valuation')
+        sender (str): The sender of the message
+        values (dict): The data values contained in the message
     """
     
-    def __init__(self, message_type, data):
+    def __init__(self, message_type, sender='system', data=None):
         """
         Initialize a new MCP message
         
         Args:
-            message_type (str): The type of message (e.g., 'property_validate', 'property_value')
-            data (dict): The message data
+            message_type (str): The type of message
+            sender (str): The sender of the message (default: 'system')
+            data (dict): The data values contained in the message (default: {})
         """
-        self.message_type = message_type
-        self.data = data or {}
+        self.type = message_type
+        self.sender = sender
+        self.values = data or {}
+        self.timestamp = None  # Will be set when the message is processed
     
-    def get_type(self):
-        """Get the message type"""
-        return self.message_type
-    
-    def get_data(self):
-        """Get the message data"""
-        return self.data
-    
-    def get_value(self, key, default=None):
-        """
-        Get a value from the message data
-        
-        Args:
-            key (str): The key to retrieve
-            default: The default value to return if the key is not found
-            
-        Returns:
-            The value associated with the key, or the default value if not found
-        """
-        return self.data.get(key, default)
+    def __str__(self):
+        """Return a string representation of the message"""
+        return f"MCPMessage(type={self.type}, sender={self.sender}, values={self.values})"
+
 
 class MCPResponse:
     """
-    Standard response format for communication between the MCP and agents.
+    Response class for communication between components in the AI platform
+    
+    Attributes:
+        success (bool): Whether the operation was successful
+        data (dict): The data returned by the operation
+        error (str): Error message if the operation failed
     """
     
-    def __init__(self, success, data=None, error=None):
+    def __init__(self, success=True, data=None, error=None):
         """
         Initialize a new MCP response
         
         Args:
-            success (bool): Whether the operation was successful
-            data (dict, optional): The response data
-            error (str, optional): Error message, if any
+            success (bool): Whether the operation was successful (default: True)
+            data (dict): The data returned by the operation (default: {})
+            error (str): Error message if the operation failed (default: None)
         """
         self.success = success
-        self.data = data
+        self.data = data or {}
         self.error = error
     
-    def to_dict(self):
-        """
-        Convert the response to a dictionary
-        
-        Returns:
-            dict: The response as a dictionary
-        """
-        return {
-            'success': self.success,
-            'data': self.data,
-            'error': self.error
-        }
+    def __str__(self):
+        """Return a string representation of the response"""
+        if self.success:
+            return f"MCPResponse(success=True, data={self.data})"
+        else:
+            return f"MCPResponse(success=False, error={self.error})"

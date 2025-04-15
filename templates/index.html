@@ -36,8 +36,8 @@
                         <i class="bi bi-speedometer2 me-2"></i> Go to Dashboard
                     </a>
                     {% else %}
-                    <a href="{{ url_for('web.login') }}" class="btn btn-primary btn-lg px-4 py-3 gap-3" style="box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);">
-                        <i class="bi bi-box-arrow-in-right me-2"></i> Login
+                    <a href="{{ url_for('web.property_valuation') }}" class="btn btn-primary btn-lg px-4 py-3 gap-3" style="box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);">
+                        <i class="bi bi-house-door me-2"></i> Property Valuation
                     </a>
                     {% endif %}
                     <a href="#features" class="btn btn-outline-light btn-lg px-4 py-3">
@@ -70,8 +70,8 @@
                     <p class="text-muted mb-0">Monitor bills from Washington State Legislature, OpenStates, LegiScan, and local sources in real-time.</p>
                 </div>
                 <div class="card-footer border-0 bg-transparent p-3">
-                    <a href="{{ url_for('web.bills') }}" class="btn btn-sm btn-outline-primary d-block">
-                        <i class="bi bi-arrow-right me-1"></i> View Bills
+                    <a href="{{ url_for('web.property_impact') }}" class="btn btn-sm btn-outline-primary d-block">
+                        <i class="bi bi-arrow-right me-1"></i> Legislative Impact
                     </a>
                 </div>
             </div>
@@ -88,8 +88,8 @@
                     <p class="text-muted mb-0">Leverage advanced AI to analyze bill impacts, generate summaries, and extract key entities.</p>
                 </div>
                 <div class="card-footer border-0 bg-transparent p-3">
-                    <a href="{{ url_for('web.bills') }}" class="btn btn-sm btn-outline-primary d-block">
-                        <i class="bi bi-arrow-right me-1"></i> Analyze Bills
+                    <a href="{{ url_for('web.property_validation') }}" class="btn btn-sm btn-outline-primary d-block">
+                        <i class="bi bi-arrow-right me-1"></i> Validate Property
                     </a>
                 </div>
             </div>
@@ -175,22 +175,22 @@
                         </div>
                         <div class="card-body p-4">
                             <div class="list-group list-group-flush">
-                                <a href="{{ url_for('web.login') }}" class="list-group-item list-group-item-action border-0 py-3">
+                                <a href="{{ url_for('web.property_validation') }}" class="list-group-item list-group-item-action border-0 py-3">
                                     <div class="d-flex align-items-center">
                                         <span class="badge rounded-pill bg-primary fs-6 me-3">1</span>
                                         <div>
-                                            <strong>Log in to your account</strong>
-                                            <div class="text-muted small">Access your personalized dashboard</div>
+                                            <strong>Validate property data</strong>
+                                            <div class="text-muted small">Ensure property data meets state standards</div>
                                         </div>
                                         <i class="bi bi-chevron-right ms-auto"></i>
                                     </div>
                                 </a>
-                                <a href="{{ url_for('web.bills') }}" class="list-group-item list-group-item-action border-0 py-3">
+                                <a href="{{ url_for('web.property_valuation') }}" class="list-group-item list-group-item-action border-0 py-3">
                                     <div class="d-flex align-items-center">
                                         <span class="badge rounded-pill bg-primary fs-6 me-3">2</span>
                                         <div>
-                                            <strong>Browse tracked legislation</strong>
-                                            <div class="text-muted small">View and filter bills from multiple sources</div>
+                                            <strong>Calculate property value</strong>
+                                            <div class="text-muted small">Use multiple approaches for property valuation</div>
                                         </div>
                                         <i class="bi bi-chevron-right ms-auto"></i>
                                     </div>
@@ -208,8 +208,8 @@
                             </div>
                         </div>
                         <div class="card-footer bg-transparent text-center border-0 p-4">
-                            <a href="{{ url_for('web.login') }}" class="btn btn-primary px-4 py-2">
-                                <i class="bi bi-box-arrow-in-right me-2"></i> Get Started
+                            <a href="{{ url_for('web.property_valuation') }}" class="btn btn-primary px-4 py-2">
+                                <i class="bi bi-house-door me-2"></i> Try Property Valuation
                             </a>
                         </div>
                     </div>
