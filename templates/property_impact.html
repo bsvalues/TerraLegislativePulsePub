@@ -162,67 +162,106 @@
                 <div id="analysisResults" class="d-none">
                     <div class="alert alert-info mb-4">
                         <h5 class="alert-heading"><i class="bi bi-info-circle me-2"></i> Analysis Information</h5>
-                        <p class="mb-0">Analysis for <strong>Residential</strong> property class based on <strong>56</strong> relevant bills.</p>
+                        <p class="mb-0">Analysis for <strong id="selectedPropertyClass">Residential</strong> property class based on <strong id="relevantBillCount">0</strong> relevant bills.</p>
+                        <div class="mt-2">
+                            <a href="{{ url_for('web.update_bills') }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-arrow-clockwise me-1"></i> Refresh Legislative Data
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5 class="mb-3">Impact Summary</h5>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 text-center bg-light-subtle">
+                                    <div class="card-body">
+                                        <div class="display-4 mb-2 text-danger">
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                        </div>
+                                        <h5 class="card-title">High Impact</h5>
+                                        <h2 class="mb-0" id="highImpactCount">0</h2>
+                                        <p class="text-muted">Bills</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 text-center bg-light-subtle">
+                                    <div class="card-body">
+                                        <div class="display-4 mb-2 text-warning">
+                                            <i class="bi bi-exclamation-circle"></i>
+                                        </div>
+                                        <h5 class="card-title">Medium Impact</h5>
+                                        <h2 class="mb-0" id="mediumImpactCount">0</h2>
+                                        <p class="text-muted">Bills</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 text-center bg-light-subtle">
+                                    <div class="card-body">
+                                        <div class="display-4 mb-2 text-success">
+                                            <i class="bi bi-info-circle"></i>
+                                        </div>
+                                        <h5 class="card-title">Low Impact</h5>
+                                        <h2 class="mb-0" id="lowImpactCount">0</h2>
+                                        <p class="text-muted">Bills</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <h5 class="mb-3">Valuation Methodology Impacts</h5>
-                    <div class="row mb-4">
+                    <div class="row mb-4" id="valuationImpacts">
+                        <!-- Dynamically populated with real bills -->
+                        {% for bill in recent_bills[:2] %}
                         <div class="col-md-6 mb-3">
                             <div class="card bill-impact-card h-100">
                                 <div class="card-body">
-                                    <span class="badge bg-danger mb-2">High Impact</span>
-                                    <h6 class="card-title">HB 1234</h6>
-                                    <p class="card-text small">Modifies the comparable sales approach by requiring 
-                                    adjustments for energy efficiency features.</p>
+                                    <span class="badge {% if loop.index == 1 %}bg-danger{% else %}bg-warning{% endif %} mb-2">
+                                        {% if loop.index == 1 %}High{% else %}Medium{% endif %} Impact
+                                    </span>
+                                    <h6 class="card-title">{{ bill.bill_id }}</h6>
+                                    <p class="card-text small">{{ bill.title }}</p>
                                 </div>
                                 <div class="card-footer bg-transparent">
-                                    <small class="text-muted">Effective: January 1, 2026</small>
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">Last Action: {{ bill.last_action_date }}</small>
+                                        <a href="{{ url_for('web.bill_detail', bill_id=bill.bill_id, source=bill.source) }}" class="btn btn-sm btn-link p-0">
+                                            <i class="bi bi-box-arrow-up-right"></i>
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="card bill-impact-card h-100">
-                                <div class="card-body">
-                                    <span class="badge bg-warning mb-2">Medium Impact</span>
-                                    <h6 class="card-title">SB 5678</h6>
-                                    <p class="card-text small">Updates depreciation tables for residential properties 
-                                    built before 1980.</p>
-                                </div>
-                                <div class="card-footer bg-transparent">
-                                    <small class="text-muted">Effective: July 1, 2025</small>
-                                </div>
-                            </div>
-                        </div>
+                        {% endfor %}
                     </div>
                     
                     <h5 class="mb-3">Tax Calculation Impacts</h5>
-                    <div class="row mb-4">
+                    <div class="row mb-4" id="taxImpacts">
+                        <!-- Dynamically populated with real bills -->
+                        {% for bill in recent_bills[2:4] %}
                         <div class="col-md-6 mb-3">
                             <div class="card bill-impact-card h-100">
                                 <div class="card-body">
-                                    <span class="badge bg-danger mb-2">High Impact</span>
-                                    <h6 class="card-title">SB 2468</h6>
-                                    <p class="card-text small">Introduces a new 0.5% surcharge on residential properties 
-                                    valued above the county median.</p>
+                                    <span class="badge {% if loop.index == 1 %}bg-danger{% else %}bg-success{% endif %} mb-2">
+                                        {% if loop.index == 1 %}High{% else %}Low{% endif %} Impact
+                                    </span>
+                                    <h6 class="card-title">{{ bill.bill_id }}</h6>
+                                    <p class="card-text small">{{ bill.title }}</p>
                                 </div>
                                 <div class="card-footer bg-transparent">
-                                    <small class="text-muted">Effective: January 1, 2026</small>
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">Last Action: {{ bill.last_action_date }}</small>
+                                        <a href="{{ url_for('web.bill_detail', bill_id=bill.bill_id, source=bill.source) }}" class="btn btn-sm btn-link p-0">
+                                            <i class="bi bi-box-arrow-up-right"></i>
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <div class="card bill-impact-card h-100">
-                                <div class="card-body">
-                                    <span class="badge bg-success mb-2">Low Impact</span>
-                                    <h6 class="card-title">HB 3456</h6>
-                                    <p class="card-text small">Clarifies the calculation method for application of 
-                                    existing tax caps.</p>
-                                </div>
-                                <div class="card-footer bg-transparent">
-                                    <small class="text-muted">Effective: Immediately</small>
-                                </div>
-                            </div>
-                        </div>
+                        {% endfor %}
                     </div>
                     
                     <div class="border-top my-4 pt-4">
@@ -263,6 +302,12 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                    
+                    <div class="mt-4 text-center">
+                        <a href="{{ url_for('web.relevant_bills') }}?property_class=Residential" class="btn btn-primary">
+                            <i class="bi bi-list-ul me-1"></i> View All Related Bills
+                        </a>
                     </div>
                 </div>
             </div>

@@ -77,6 +77,26 @@ def bills():
                           sources=sources,
                           current_query=search_query,
                           current_source=source_filter)
+                          
+@web_bp.route('/bills/update', methods=['GET', 'POST'])
+@login_required
+def update_bills():
+    """Update legislative bills from all sources"""
+    try:
+        from services.trackers import update_all_bills
+        update_results = update_all_bills()
+        
+        total_updated = sum(update_results.values())
+        if total_updated > 0:
+            flash(f"Successfully updated {total_updated} bills from all sources.", "success")
+        else:
+            flash("No new bills were found.", "info")
+        
+    except Exception as e:
+        logger.exception(f"Error updating bills: {str(e)}")
+        flash(f"Error updating bills: {str(e)}", "danger")
+    
+    return redirect(url_for('web.bills'))
 
 @web_bp.route('/bills/<bill_id>')
 @login_required
