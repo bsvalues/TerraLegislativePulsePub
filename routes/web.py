@@ -135,3 +135,122 @@ def relevant_bills():
                           property_classes=property_classes,
                           current_class=property_class,
                           current_keywords=keywords)
+
+@web_bp.route('/property-validation', methods=['GET', 'POST'])
+@login_required
+def property_validation():
+    """Validate property data according to Washington State standards"""
+    property_data = None
+    validation_results = None
+    
+    if request.method == 'POST':
+        # Extract form data
+        property_data = {
+            'parcel_id': request.form.get('parcel_id'),
+            'property_address': request.form.get('property_address'),
+            'property_city': request.form.get('property_city'),
+            'property_state': request.form.get('property_state', 'WA'),
+            'property_zip': request.form.get('property_zip'),
+            'property_class': request.form.get('property_class'),
+            'land_area': request.form.get('land_area'),
+            'building_area': request.form.get('building_area'),
+            'year_built': request.form.get('year_built'),
+            'bedrooms': request.form.get('bedrooms'),
+            'bathrooms': request.form.get('bathrooms'),
+            'assessment_year': request.form.get('assessment_year'),
+            'assessed_value': request.form.get('assessed_value'),
+            'land_value': request.form.get('land_value'),
+            'improvement_value': request.form.get('improvement_value'),
+            'valuation_method': request.form.get('valuation_method')
+        }
+        
+        # Create a data validation agent to validate the property data
+        from agents.data_validation_agent import DataValidationAgent
+        validation_agent = DataValidationAgent()
+        
+        # Create an MCP message to send to the validation agent
+        from mcp.message_protocol import MCPMessage
+        message = MCPMessage(
+            type='property_validation',
+            sender='web',
+            values={'property_data': property_data}
+        )
+        
+        # Process the message and get the response
+        response = validation_agent.process_message(message)
+        
+        # Extract validation results
+        if response and response.success:
+            validation_results = response.data.get('validation_results')
+        else:
+            error = response.error if response else "Unknown error"
+            flash(f"Validation error: {error}", "danger")
+    
+    # Get property classes from config
+    property_classes = current_app.config.get('PROPERTY_CLASSIFICATIONS', {})
+    
+    return render_template('property_validation.html',
+                          property_data=property_data,
+                          validation_results=validation_results,
+                          property_classes=property_classes)
+
+@web_bp.route('/property-valuation', methods=['GET', 'POST'])
+@login_required
+def property_valuation():
+    """Calculate property value using multiple approaches"""
+    property_data = None
+    valuation_results = None
+    
+    if request.method == 'POST':
+        # Extract form data
+        property_data = {
+            'parcel_id': request.form.get('parcel_id'),
+            'property_address': request.form.get('property_address'),
+            'property_city': request.form.get('property_city'),
+            'property_state': request.form.get('property_state', 'WA'),
+            'property_zip': request.form.get('property_zip'),
+            'property_class': request.form.get('property_class'),
+            'land_area': request.form.get('land_area'),
+            'building_area': request.form.get('building_area'),
+            'year_built': request.form.get('year_built'),
+            'bedrooms': request.form.get('bedrooms'),
+            'bathrooms': request.form.get('bathrooms')
+        }
+        
+        # Get valuation approach
+        approach = request.form.get('valuation_approach', 'market')
+        
+        # Create a valuation agent to calculate the property value
+        from agents.valuation_agent import ValuationAgent
+        valuation_agent = ValuationAgent()
+        
+        # Create an MCP message to send to the valuation agent
+        from mcp.message_protocol import MCPMessage
+        message = MCPMessage(
+            type='property_valuation',
+            sender='web',
+            values={
+                'property_data': property_data,
+                'approach': approach
+            }
+        )
+        
+        # Process the message and get the response
+        response = valuation_agent.process_message(message)
+        
+        # Extract valuation results
+        if response and response.success:
+            valuation_results = response.data.get('valuation_results')
+        else:
+            error = response.error if response else "Unknown error"
+            flash(f"Valuation error: {error}", "danger")
+    
+    # Get property classes and valuation methods from config
+    property_classes = current_app.config.get('PROPERTY_CLASSIFICATIONS', {})
+    valuation_methods = current_app.config.get('VALUATION_METHODS', ['Market', 'Cost', 'Income'])
+    
+    return render_template('property_valuation.html',
+                          property_data=property_data,
+                          valuation_results=valuation_results,
+                          property_classes=property_classes,
+                          valuation_methods=valuation_methods)
