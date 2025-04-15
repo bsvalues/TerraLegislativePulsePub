@@ -79,22 +79,22 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                             <li>
-                                <a class="dropdown-item" href="{{ url_for('auth.profile') }}">
-                                    <i class="fas fa-id-card me-2"></i> Profile
+                                <a class="dropdown-item" href="{{ url_for('web.index') }}">
+                                    <i class="fas fa-id-card me-2"></i> Home
                                 </a>
                             </li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
-                                <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
-                                    <i class="fas fa-sign-out-alt me-2"></i> Logout
+                                <a class="dropdown-item" href="{{ url_for('web.index') }}">
+                                    <i class="fas fa-sign-out-alt me-2"></i> Home
                                 </a>
                             </li>
                         </ul>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('auth.login') }}">
-                            <i class="fas fa-sign-in-alt me-1"></i> Login
+                        <a class="nav-link" href="{{ url_for('web.property_valuation') }}">
+                            <i class="fas fa-house-door me-1"></i> Property Valuation
                         </a>
                     </li>
                     {% endif %}
