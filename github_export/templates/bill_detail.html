@@ -1,0 +1,344 @@
+{% extends "base.html" %}
+
+{% block title %}{{ bill.bill_id }} - Benton County Assessor AI Platform{% endblock %}
+
+{% block head %}
+<style>
+    .bill-header {
+        position: relative;
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+    .bill-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 5px;
+        height: 100%;
+        background-color: var(--bs-primary);
+    }
+    .bill-status {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+    }
+    .bill-attribute {
+        display: flex;
+        margin-bottom: 0.5rem;
+    }
+    .bill-attribute-label {
+        width: 140px;
+        font-weight: 600;
+        color: var(--bs-gray-600);
+    }
+    .bill-attribute-value {
+        flex: 1;
+    }
+    .impact-card {
+        height: 100%;
+    }
+    .impact-card .card-header {
+        font-weight: 600;
+    }
+    .impact-item {
+        display: flex;
+        margin-bottom: 1rem;
+    }
+    .impact-item-icon {
+        margin-right: 1rem;
+        flex-shrink: 0;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+    .impact-high {
+        background-color: var(--bs-danger);
+    }
+    .impact-medium {
+        background-color: var(--bs-warning);
+    }
+    .impact-low {
+        background-color: var(--bs-success);
+    }
+    .nav-tabs .nav-link {
+        font-weight: 500;
+    }
+    .entity-tag {
+        font-size: 0.85rem;
+        padding: 0.35rem 0.65rem;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        display: inline-block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between py-3">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('web.dashboard') }}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('web.bills') }}">Bills</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ bill.bill_id }}</li>
+            </ol>
+        </nav>
+    </div>
+    <div class="d-flex mb-3 mb-md-0">
+        <a href="{{ url_for('web.bills') }}" class="btn btn-outline-secondary me-2">
+            <i class="bi bi-arrow-left me-1"></i> Back to Bills
+        </a>
+        <div class="btn-group ms-2">
+            <button type="button" class="btn btn-outline-primary">
+                <i class="bi bi-file-earmark-pdf me-1"></i> Export
+            </button>
+            <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
+                <span class="visually-hidden">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="#">PDF</a></li>
+                <li><a class="dropdown-item" href="#">Word</a></li>
+                <li><a class="dropdown-item" href="#">HTML</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow bill-header">
+            <div class="card-body p-4">
+                <div class="bill-status">
+                    {% set status_class = {
+                        'Active': 'success',
+                        'Pending': 'warning',
+                        'Passed': 'primary',
+                        'Failed': 'danger'
+                    }.get(bill.status, 'secondary') %}
+                    <span class="badge bg-{{ status_class }} px-3 py-2">{{ bill.status }}</span>
+                </div>
+                <h2 class="mb-3">{{ bill.bill_id }}</h2>
+                <h4 class="text-muted mb-4">{{ bill.title }}</h4>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="bill-attribute">
+                            <div class="bill-attribute-label">Source:</div>
+                            <div class="bill-attribute-value">{{ bill.source }}</div>
+                        </div>
+                        <div class="bill-attribute">
+                            <div class="bill-attribute-label">Introduced:</div>
+                            <div class="bill-attribute-value">{{ bill.introduced_date }}</div>
+                        </div>
+                        <div class="bill-attribute">
+                            <div class="bill-attribute-label">Last Action:</div>
+                            <div class="bill-attribute-value">{{ bill.last_action_date }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="bill-attribute">
+                            <div class="bill-attribute-label">URL:</div>
+                            <div class="bill-attribute-value">
+                                <a href="{{ bill.url }}" target="_blank">{{ bill.url }}</a>
+                            </div>
+                        </div>
+                        <div class="bill-attribute">
+                            <div class="bill-attribute-label">Impact Level:</div>
+                            <div class="bill-attribute-value">
+                                {% set impact_class = {
+                                    'High': 'danger',
+                                    'Medium': 'warning',
+                                    'Low': 'success'
+                                }.get(analysis.impact_level|default('Unknown'), 'secondary') %}
+                                <span class="badge bg-{{ impact_class }}">{{ analysis.impact_level|default('Unknown') }}</span>
+                            </div>
+                        </div>
+                        <div class="bill-attribute">
+                            <div class="bill-attribute-label">Property Classes:</div>
+                            <div class="bill-attribute-value">
+                                {% if bill.affected_property_classes %}
+                                    {% for cls in bill.affected_property_classes.split(',') %}
+                                        <span class="badge bg-info me-1">{{ cls.strip() }}</span>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="text-muted">Not specified</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4 mb-4 mb-md-0">
+        <div class="card shadow impact-card">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-bar-chart-fill me-2"></i> Impact Analysis
+            </div>
+            <div class="card-body">
+                {% if analysis and analysis.property_impacts %}
+                    {% for impact in analysis.property_impacts %}
+                        <div class="impact-item">
+                            {% set impact_level = impact.severity|default('medium')|lower %}
+                            {% set impact_icon = {
+                                'high': 'exclamation-triangle-fill',
+                                'medium': 'exclamation-circle',
+                                'low': 'info-circle'
+                            }.get(impact_level, 'info-circle') %}
+                            <div class="impact-item-icon impact-{{ impact_level }}">
+                                <i class="bi bi-{{ impact_icon }}"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">{{ impact.area }}</h6>
+                                <p class="mb-0 text-muted">{{ impact.description }}</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-clipboard-data fs-1 text-muted"></i>
+                        <p class="mt-3">No impact analysis available.</p>
+                        <button class="btn btn-primary">
+                            <i class="bi bi-lightning-charge me-2"></i> Generate Analysis
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="billDetailTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary" 
+                                type="button" role="tab" aria-controls="summary" aria-selected="true">
+                            <i class="bi bi-file-text me-1"></i> Summary
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="entities-tab" data-bs-toggle="tab" data-bs-target="#entities" 
+                                type="button" role="tab" aria-controls="entities" aria-selected="false">
+                            <i class="bi bi-diagram-3 me-1"></i> Entities
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="fulltext-tab" data-bs-toggle="tab" data-bs-target="#fulltext" 
+                                type="button" role="tab" aria-controls="fulltext" aria-selected="false">
+                            <i class="bi bi-file-earmark me-1"></i> Full Text
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="billDetailTabsContent">
+                    <div class="tab-pane fade show active" id="summary" role="tabpanel" aria-labelledby="summary-tab">
+                        {% if analysis and analysis.summary %}
+                            <h5 class="card-title">AI-Generated Summary</h5>
+                            <p class="mb-4">{{ analysis.summary }}</p>
+                            
+                            {% if analysis.key_provisions %}
+                                <h5 class="card-title">Key Provisions</h5>
+                                <ul class="mb-0">
+                                    {% for provision in analysis.key_provisions %}
+                                        <li class="mb-2">{{ provision }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="bi bi-file-earmark-text fs-1 text-muted"></i>
+                                <p class="mt-3">No summary available.</p>
+                                <button class="btn btn-primary">
+                                    <i class="bi bi-lightning-charge me-2"></i> Generate Summary
+                                </button>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="tab-pane fade" id="entities" role="tabpanel" aria-labelledby="entities-tab">
+                        {% if analysis and analysis.entities %}
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <h5 class="card-title mb-3">Organizations</h5>
+                                    {% for entity in analysis.entities.organizations|default([]) %}
+                                        <span class="badge bg-primary entity-tag">{{ entity }}</span>
+                                    {% else %}
+                                        <p class="text-muted">No organizations found</p>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-6">
+                                    <h5 class="card-title mb-3">People</h5>
+                                    {% for entity in analysis.entities.people|default([]) %}
+                                        <span class="badge bg-info entity-tag">{{ entity }}</span>
+                                    {% else %}
+                                        <p class="text-muted">No people found</p>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <h5 class="card-title mb-3">Locations</h5>
+                                    {% for entity in analysis.entities.locations|default([]) %}
+                                        <span class="badge bg-success entity-tag">{{ entity }}</span>
+                                    {% else %}
+                                        <p class="text-muted">No locations found</p>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-6">
+                                    <h5 class="card-title mb-3">Legal References</h5>
+                                    {% for entity in analysis.entities.legal_references|default([]) %}
+                                        <span class="badge bg-warning entity-tag">{{ entity }}</span>
+                                    {% else %}
+                                        <p class="text-muted">No legal references found</p>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="bi bi-diagram-3 fs-1 text-muted"></i>
+                                <p class="mt-3">No entity extraction available.</p>
+                                <button class="btn btn-primary">
+                                    <i class="bi bi-lightning-charge me-2"></i> Extract Entities
+                                </button>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="tab-pane fade" id="fulltext" role="tabpanel" aria-labelledby="fulltext-tab">
+                        {% if bill.description %}
+                            <h5 class="card-title">Bill Text</h5>
+                            <div class="bg-body-tertiary p-3 rounded mb-3" style="max-height: 400px; overflow-y: auto;">
+                                <pre class="mb-0" style="white-space: pre-wrap;">{{ bill.description }}</pre>
+                            </div>
+                            <div class="text-end">
+                                <a href="{{ bill.url }}" target="_blank" class="btn btn-outline-primary">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i> View at Source
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="bi bi-file-earmark fs-1 text-muted"></i>
+                                <p class="mt-3">Full text not available.</p>
+                                <a href="{{ bill.url }}" target="_blank" class="btn btn-outline-primary">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i> View at Source
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

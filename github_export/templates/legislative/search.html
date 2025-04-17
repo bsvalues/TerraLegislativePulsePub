@@ -1,0 +1,111 @@
+{% extends "layout.html" %}
+
+{% block title %}Search Legislation{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Search Legislation</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('web.dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('web.legislative_tracking') }}">Legislative Tracking</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Search</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <form action="{{ url_for('web.search_legislation') }}" method="get" class="row g-3">
+                        <div class="col-md-8">
+                            <label for="query" class="form-label">Search Terms</label>
+                            <input type="text" name="query" id="query" class="form-control" value="{{ query }}" placeholder="e.g., property tax, assessment, valuation...">
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if query %}
+    <div class="row mb-2">
+        <div class="col">
+            <h2>Search Results</h2>
+            <p>Found {{ results|length }} bills matching "{{ query }}"</p>
+        </div>
+    </div>
+
+    {% if results %}
+    <div class="row">
+        <div class="col">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Bill ID</th>
+                            <th>Source</th>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bill in results %}
+                        <tr>
+                            <td>{{ bill.bill_id }}</td>
+                            <td>
+                                <span class="badge bg-secondary">{{ bill.source }}</span>
+                            </td>
+                            <td>{{ bill.title }}</td>
+                            <td>
+                                {% if bill.status %}
+                                    <span class="badge {% if 'pass' in bill.status|lower %}bg-success{% elif 'fail' in bill.status|lower or 'dead' in bill.status|lower %}bg-danger{% else %}bg-secondary{% endif %}">
+                                        {{ bill.status }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Unknown</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('web.view_bill', bill_id=bill.bill_id, source=bill.source) }}" class="btn btn-sm btn-outline-primary">View</a>
+                                <a href="{{ url_for('web.view_bill', bill_id=bill.bill_id, source=bill.source, analyze='true') }}" class="btn btn-sm btn-outline-secondary">Analyze</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        No bills found matching your search terms. Try broadening your search or using different keywords.
+    </div>
+    {% endif %}
+    {% endif %}
+
+    <div class="row mt-4">
+        <div class="col">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">Search Tips</h5>
+                    <ul class="mb-0">
+                        <li>Use specific terms related to property assessment (e.g., "valuation", "tax exemption")</li>
+                        <li>Include property types (e.g., "residential", "commercial", "agricultural")</li>
+                        <li>Try searching for bill numbers if you know them (e.g., "HB 1234", "SB 5678")</li>
+                        <li>Broader terms will return more results but may be less relevant</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+
+{% block title %}Property Impact Analysis - Benton County Assessor AI Platform{% endblock %}
+
+{% block head %}
+<style>
+    .impact-form-card {
+        background-color: var(--bs-body-bg);
+        border-radius: 0.5rem;
+        border: 1px solid var(--bs-border-color);
+    }
+    .property-class-selector {
+        border-left: 4px solid transparent;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .property-class-selector:hover {
+        background-color: var(--bs-primary-bg-subtle);
+    }
+    .property-class-selector.active {
+        border-left-color: var(--bs-primary);
+        background-color: var(--bs-primary-bg-subtle);
+    }
+    .bill-impact-card {
+        transition: transform 0.2s ease;
+    }
+    .bill-impact-card:hover {
+        transform: translateY(-5px);
+    }
+    .impact-icon {
+        font-size: 1.5rem;
+        padding: 1rem;
+        border-radius: 50%;
+        background-color: var(--bs-primary-bg-subtle);
+        color: var(--bs-primary);
+        display: inline-flex;
+        margin-bottom: 1rem;
+    }
+    .results-placeholder {
+        min-height: 400px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Property Impact Analysis</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <button type="button" class="btn btn-sm btn-outline-secondary me-2">
+            <i class="bi bi-save me-1"></i> Save Report
+        </button>
+        <div class="btn-group">
+            <button type="button" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-file-earmark-pdf me-1"></i> Export
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-share me-1"></i> Share
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Impact Analysis Parameters</h5>
+            </div>
+            <div class="card-body">
+                <form id="impactAnalysisForm">
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Property Class</label>
+                        <div class="list-group">
+                            {% for class_name, codes in property_classes.items() %}
+                            <div class="list-group-item property-class-selector {% if class_name == 'Residential' %}active{% endif %}" 
+                                data-class="{{ class_name }}">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ class_name }}</h6>
+                                    <small>{{ codes|length }} types</small>
+                                </div>
+                                <p class="mb-1 small text-muted">
+                                    {% for code in codes %}
+                                    <span class="badge bg-secondary me-1">{{ code }}</span>
+                                    {% endfor %}
+                                </p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="billIdInput" class="form-label fw-bold">Bill ID (Optional)</label>
+                        <select class="form-select" id="billIdInput">
+                            <option value="">Select a bill or leave empty for all</option>
+                            {% for bill in recent_bills %}
+                            <option value="{{ bill.bill_id }}">{{ bill.bill_id }} - {{ bill.title|truncate(40) }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="keywordsInput" class="form-label fw-bold">Keywords (Optional)</label>
+                        <input type="text" class="form-control" id="keywordsInput" 
+                            placeholder="e.g. tax, valuation, exemption">
+                        <div class="form-text">Separate multiple keywords with commas</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Analysis Type</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" checked id="valuationAnalysis">
+                            <label class="form-check-label" for="valuationAnalysis">
+                                Valuation Methodology
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" checked id="taxAnalysis">
+                            <label class="form-check-label" for="taxAnalysis">
+                                Tax Calculation
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" checked id="exemptionAnalysis">
+                            <label class="form-check-label" for="exemptionAnalysis">
+                                Exemptions & Relief
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" checked id="implementationAnalysis">
+                            <label class="form-check-label" for="implementationAnalysis">
+                                Implementation Requirements
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-lightning-charge me-2"></i> Run Analysis
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Impact Analysis Results</h5>
+            </div>
+            <div class="card-body">
+                <div class="results-placeholder" id="resultsPlaceholder">
+                    <i class="bi bi-search fs-1 text-muted mb-3"></i>
+                    <h5>Configure Parameters</h5>
+                    <p class="text-muted">Select a property class and analysis options, then click "Run Analysis"</p>
+                </div>
+                
+                <div id="analysisResults" class="d-none">
+                    <div class="alert alert-info mb-4">
+                        <h5 class="alert-heading"><i class="bi bi-info-circle me-2"></i> Analysis Information</h5>
+                        <p class="mb-0">Analysis for <strong id="selectedPropertyClass">Residential</strong> property class based on <strong id="relevantBillCount">0</strong> relevant bills.</p>
+                        <div class="mt-2">
+                            <a href="{{ url_for('web.update_bills') }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-arrow-clockwise me-1"></i> Refresh Legislative Data
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5 class="mb-3">Impact Summary</h5>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 text-center bg-light-subtle">
+                                    <div class="card-body">
+                                        <div class="display-4 mb-2 text-danger">
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                        </div>
+                                        <h5 class="card-title">High Impact</h5>
+                                        <h2 class="mb-0" id="highImpactCount">0</h2>
+                                        <p class="text-muted">Bills</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 text-center bg-light-subtle">
+                                    <div class="card-body">
+                                        <div class="display-4 mb-2 text-warning">
+                                            <i class="bi bi-exclamation-circle"></i>
+                                        </div>
+                                        <h5 class="card-title">Medium Impact</h5>
+                                        <h2 class="mb-0" id="mediumImpactCount">0</h2>
+                                        <p class="text-muted">Bills</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 text-center bg-light-subtle">
+                                    <div class="card-body">
+                                        <div class="display-4 mb-2 text-success">
+                                            <i class="bi bi-info-circle"></i>
+                                        </div>
+                                        <h5 class="card-title">Low Impact</h5>
+                                        <h2 class="mb-0" id="lowImpactCount">0</h2>
+                                        <p class="text-muted">Bills</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h5 class="mb-3">Valuation Methodology Impacts</h5>
+                    <div class="row mb-4" id="valuationImpacts">
+                        <!-- Dynamically populated with real bills -->
+                        {% for bill in recent_bills[:2] %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card bill-impact-card h-100">
+                                <div class="card-body">
+                                    <span class="badge {% if loop.index == 1 %}bg-danger{% else %}bg-warning{% endif %} mb-2">
+                                        {% if loop.index == 1 %}High{% else %}Medium{% endif %} Impact
+                                    </span>
+                                    <h6 class="card-title">{{ bill.bill_id }}</h6>
+                                    <p class="card-text small">{{ bill.title }}</p>
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">Last Action: {{ bill.last_action_date }}</small>
+                                        <a href="{{ url_for('web.bill_detail', bill_id=bill.bill_id, source=bill.source) }}" class="btn btn-sm btn-link p-0">
+                                            <i class="bi bi-box-arrow-up-right"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <h5 class="mb-3">Tax Calculation Impacts</h5>
+                    <div class="row mb-4" id="taxImpacts">
+                        <!-- Dynamically populated with real bills -->
+                        {% for bill in recent_bills[2:4] %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card bill-impact-card h-100">
+                                <div class="card-body">
+                                    <span class="badge {% if loop.index == 1 %}bg-danger{% else %}bg-success{% endif %} mb-2">
+                                        {% if loop.index == 1 %}High{% else %}Low{% endif %} Impact
+                                    </span>
+                                    <h6 class="card-title">{{ bill.bill_id }}</h6>
+                                    <p class="card-text small">{{ bill.title }}</p>
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">Last Action: {{ bill.last_action_date }}</small>
+                                        <a href="{{ url_for('web.bill_detail', bill_id=bill.bill_id, source=bill.source) }}" class="btn btn-sm btn-link p-0">
+                                            <i class="bi bi-box-arrow-up-right"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="border-top my-4 pt-4">
+                        <h4 class="mb-4">Implementation Timeline</h4>
+                        <div class="position-relative">
+                            <div class="progress" style="height: 3px;">
+                                <div class="progress-bar bg-primary" role="progressbar" style="width: 100%"></div>
+                            </div>
+                            
+                            <div class="row mt-3">
+                                <div class="col-md-3 text-center">
+                                    <div class="impact-icon">
+                                        <i class="bi bi-calendar-check"></i>
+                                    </div>
+                                    <h6>Immediate</h6>
+                                    <p class="small">Documentation updates</p>
+                                </div>
+                                <div class="col-md-3 text-center">
+                                    <div class="impact-icon">
+                                        <i class="bi bi-people"></i>
+                                    </div>
+                                    <h6>Q3 2025</h6>
+                                    <p class="small">Staff training required</p>
+                                </div>
+                                <div class="col-md-3 text-center">
+                                    <div class="impact-icon">
+                                        <i class="bi bi-laptop"></i>
+                                    </div>
+                                    <h6>Q4 2025</h6>
+                                    <p class="small">Software updates</p>
+                                </div>
+                                <div class="col-md-3 text-center">
+                                    <div class="impact-icon">
+                                        <i class="bi bi-check-circle"></i>
+                                    </div>
+                                    <h6>Jan 2026</h6>
+                                    <p class="small">Full implementation</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 text-center">
+                        <a href="{{ url_for('web.relevant_bills') }}?property_class=Residential" class="btn btn-primary">
+                            <i class="bi bi-list-ul me-1"></i> View All Related Bills
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Property class selector
+        const propertySelectors = document.querySelectorAll('.property-class-selector');
+        propertySelectors.forEach(selector => {
+            selector.addEventListener('click', function() {
+                propertySelectors.forEach(s => s.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // Form submission
+        const analysisForm = document.getElementById('impactAnalysisForm');
+        const resultsPlaceholder = document.getElementById('resultsPlaceholder');
+        const analysisResults = document.getElementById('analysisResults');
+        
+        analysisForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            resultsPlaceholder.classList.add('d-none');
+            
+            // Simulate loading
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'text-center my-5';
+            loadingDiv.innerHTML = `
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5>Analyzing Legislative Impacts...</h5>
+                <p class="text-muted">This may take a few moments</p>
+            `;
+            
+            analysisResults.classList.add('d-none');
+            analysisResults.parentNode.insertBefore(loadingDiv, analysisResults);
+            
+            // Simulate API call
+            setTimeout(() => {
+                loadingDiv.remove();
+                analysisResults.classList.remove('d-none');
+            }, 1500);
+        });
+    });
+</script>
+{% endblock %}

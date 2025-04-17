@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Benton County Assessor AI Platform{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-lg my-5">
+            <div class="card-header bg-primary text-white text-center py-3">
+                <h3 class="my-0">Login</h3>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-key"></i></span>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Sign In</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center py-3">
+                <p class="text-muted mb-0">Benton County Assessor's Office Staff Access Only</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

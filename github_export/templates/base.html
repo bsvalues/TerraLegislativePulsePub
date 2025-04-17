@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Benton County Assessor AI Platform{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, #2a3a4a 0%, #13171c 100%);
+            background-attachment: fixed;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            z-index: -1;
+        }
+        .navbar-brand {
+            font-weight: 700;
+        }
+        .sidebar {
+            min-height: calc(100vh - 56px);
+            background-color: rgba(33, 37, 41, 0.8);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        main {
+            flex: 1;
+        }
+        .card {
+            margin-bottom: 1rem;
+            transition: transform 0.2s ease;
+            background-color: rgba(33, 37, 41, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+        .footer {
+            margin-top: auto;
+            background-color: rgba(33, 37, 41, 0.95);
+            backdrop-filter: blur(5px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .bill-card .card-header {
+            font-weight: 600;
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+        .progress-bar {
+            transition: width 1s ease-in-out;
+        }
+        .badge-pill {
+            border-radius: 50rem;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #0d6efd;
+            box-shadow: 0 2px 8px rgba(13, 110, 253, 0.4);
+        }
+        .container-fluid {
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+        .table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .table-hover tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('web.index') }}">
+                <i class="bi bi-building-fill"></i> Benton County Assessor
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('web.dashboard') }}">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('web.bills') }}">Bills</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('web.property_impact') }}">Property Impact</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            {{ current_user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{{ url_for('web.logout') }}">Logout</a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('web.login') }}">Login</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid py-4">
+        <div class="row">
+            {% if current_user.is_authenticated %}
+            <div class="col-lg-2">
+                <div class="sidebar d-flex flex-column flex-shrink-0 p-3 bg-body-tertiary">
+                    <ul class="nav nav-pills flex-column mb-auto">
+                        <li class="nav-item">
+                            <a href="{{ url_for('web.dashboard') }}" class="nav-link {% if request.endpoint == 'web.dashboard' %}active{% endif %}">
+                                <i class="bi bi-speedometer2 me-2"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('web.bills') }}" class="nav-link {% if request.endpoint == 'web.bills' %}active{% endif %}">
+                                <i class="bi bi-file-text me-2"></i>
+                                Legislative Tracking
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('web.property_impact') }}" class="nav-link {% if request.endpoint == 'web.property_impact' %}active{% endif %}">
+                                <i class="bi bi-house-door me-2"></i>
+                                Property Impact
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('web.relevant_bills') }}" class="nav-link {% if request.endpoint == 'web.relevant_bills' %}active{% endif %}">
+                                <i class="bi bi-search me-2"></i>
+                                Relevant Bills
+                            </a>
+                        </li>
+                        <li class="border-top my-3"></li>
+                        <li>
+                            <a href="#" class="nav-link">
+                                <i class="bi bi-gear me-2"></i>
+                                Settings
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <main class="col-lg-10">
+            {% else %}
+            <main class="col-12">
+            {% endif %}
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <footer class="footer bg-dark text-light py-3 mt-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p>&copy; 2025 Benton County Assessor's Office</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>AI-Powered Legislative Analysis Platform</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

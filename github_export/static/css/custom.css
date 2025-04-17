@@ -1,0 +1,180 @@
+/**
+ * Benton County Assessor AI Platform - Custom CSS
+ * Minimal custom styles to supplement Bootstrap
+ */
+
+/* General overrides and custom styles */
+.text-wrap {
+    white-space: normal !important;
+}
+
+.min-w-150 {
+    min-width: 150px;
+}
+
+.min-w-200 {
+    min-width: 200px;
+}
+
+.max-w-150 {
+    max-width: 150px;
+}
+
+.max-w-200 {
+    max-width: 200px;
+}
+
+.max-w-300 {
+    max-width: 300px;
+}
+
+.max-w-400 {
+    max-width: 400px;
+}
+
+.max-w-500 {
+    max-width: 500px;
+}
+
+.max-w-600 {
+    max-width: 600px;
+}
+
+.chart-container {
+    height: 300px;
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+/* Landing page styles */
+.landing-hero {
+    background: url('../images/wa_capitol.png');
+    background-size: cover;
+    background-position: center top;
+    min-height: 350px;
+    color: white;
+    display: flex;
+    align-items: center;
+}
+
+/* Dashboard card styles */
+.card-stat {
+    border-left: 4px solid var(--bs-info);
+    transition: transform 0.2s ease;
+}
+
+.card-stat:hover {
+    transform: translateY(-5px);
+}
+
+.card-stat.stat-primary {
+    border-left-color: var(--bs-primary);
+}
+
+.card-stat.stat-success {
+    border-left-color: var(--bs-success);
+}
+
+.card-stat.stat-warning {
+    border-left-color: var(--bs-warning);
+}
+
+.card-stat.stat-danger {
+    border-left-color: var(--bs-danger);
+}
+
+.card-stat.stat-info {
+    border-left-color: var(--bs-info);
+}
+
+/* Agent status indicators */
+.status-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.status-active {
+    background-color: var(--bs-success);
+}
+
+.status-inactive {
+    background-color: var(--bs-danger);
+}
+
+.status-warning {
+    background-color: var(--bs-warning);
+}
+
+/* Validation result styles */
+.validation-results {
+    border-left: 4px solid var(--bs-info);
+    padding-left: 1rem;
+}
+
+.validation-results.has-errors {
+    border-left-color: var(--bs-danger);
+}
+
+.validation-results.has-warnings {
+    border-left-color: var(--bs-warning);
+}
+
+.validation-results.valid {
+    border-left-color: var(--bs-success);
+}
+
+/* Impact analysis styles */
+.impact-high {
+    color: var(--bs-danger);
+    font-weight: bold;
+}
+
+.impact-medium {
+    color: var(--bs-warning);
+    font-weight: bold;
+}
+
+.impact-low {
+    color: var(--bs-success);
+    font-weight: bold;
+}
+
+/* User query interface styles */
+.query-response {
+    border-left: 4px solid var(--bs-info);
+    padding-left: 1rem;
+    margin-top: 1.5rem;
+    background-color: rgba(var(--bs-info-rgb), 0.05);
+    padding: 1rem;
+    border-radius: 0.25rem;
+}
+
+.query-response pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* Sidebar navigation (for larger screens) */
+@media (min-width: 992px) {
+    .sidebar {
+        position: sticky;
+        top: 80px;
+        height: calc(100vh - 100px);
+        overflow-y: auto;
+    }
+}
+
+/* Print styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .container {
+        width: 100%;
+        max-width: 100%;
+    }
+}

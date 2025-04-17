@@ -1,0 +1,93 @@
+{% extends "layout.html" %}
+
+{% block title %}Legislative Tracking{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Legislative Tracking</h1>
+            <p class="lead">Track and analyze legislation that may impact Benton County property assessments.</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <form action="{{ url_for('web.search_legislation') }}" method="get" class="d-flex">
+                <input type="text" name="query" class="form-control me-2" placeholder="Search bills...">
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">Bill Impact Analysis</h5>
+                    <p class="card-text">
+                        Our AI-powered analysis can help you understand how specific legislation might impact 
+                        property assessments in Benton County.
+                    </p>
+                    <a href="{{ url_for('web.search_legislation') }}" class="btn btn-outline-primary">Find Relevant Bills</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% for source, bills in bills_by_source.items() %}
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">{{ source | title }} Bills</h5>
+            <span class="badge bg-primary">{{ bills|length }}</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Bill ID</th>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Last Updated</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bill in bills %}
+                        <tr>
+                            <td>{{ bill.bill_id }}</td>
+                            <td>{{ bill.title }}</td>
+                            <td>
+                                {% if bill.status %}
+                                    <span class="badge {% if 'pass' in bill.status|lower %}bg-success{% elif 'fail' in bill.status|lower or 'dead' in bill.status|lower %}bg-danger{% else %}bg-secondary{% endif %}">
+                                        {{ bill.status }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Unknown</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if bill.last_updated %}
+                                    {{ bill.last_updated|truncate(10, true, "") }}
+                                {% elif bill.updated_at %}
+                                    {{ bill.updated_at|truncate(10, true, "") }}
+                                {% else %}
+                                    Unknown
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('web.view_bill', bill_id=bill.bill_id, source=source) }}" class="btn btn-sm btn-outline-primary">View</a>
+                                <a href="{{ url_for('web.view_bill', bill_id=bill.bill_id, source=source, analyze='true') }}" class="btn btn-sm btn-outline-secondary">Analyze</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        No bills are currently being tracked. The system will automatically fetch new bills when available.
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
