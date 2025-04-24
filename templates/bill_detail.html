@@ -159,6 +159,12 @@
                             </div>
                         </div>
                         <div class="bill-attribute">
+                            <div class="bill-attribute-label">Complexity:</div>
+                            <div class="bill-attribute-value">
+                                <div id="bill-complexity-meter" class="complexity-meter-container" data-bill-id="{{ bill.bill_id }}" data-bill-status="{{ bill.status }}" data-bill-title="{{ bill.title }}" data-bill-last-action="{{ bill.last_action_date }}" data-bill-description="{{ bill.description if bill.description else '' }}"></div>
+                            </div>
+                        </div>
+                        <div class="bill-attribute">
                             <div class="bill-attribute-label">Property Classes:</div>
                             <div class="bill-attribute-value">
                                 {% if bill.affected_property_classes %}
@@ -341,4 +347,59 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get the complexity meter container
+    const complexityContainer = document.getElementById('bill-complexity-meter');
+    
+    if (complexityContainer) {
+        // Get bill data from data attributes
+        const billData = {
+            id: complexityContainer.dataset.billId,
+            title: complexityContainer.dataset.billTitle,
+            status: complexityContainer.dataset.billStatus,
+            last_action_date: complexityContainer.dataset.billLastAction,
+            description: complexityContainer.dataset.billDescription
+        };
+        
+        // Calculate complexity score
+        const complexityScore = calculateLegislativeComplexity(billData);
+        
+        // Initialize the complexity meter with more detailed configuration for the detail page
+        const meter = new ComplexityMeter('bill-complexity-meter', {
+            minValue: 0,
+            maxValue: 100,
+            thresholds: [30, 70],
+            colors: ['#28a745', '#ffc107', '#dc3545'],
+            tooltipFormat: value => {
+                let complexityLabel = 'Low';
+                let complexityDescription = 'This bill has relatively straightforward provisions with minimal impact.';
+                
+                if (value > 70) {
+                    complexityLabel = 'High';
+                    complexityDescription = 'This bill contains complex provisions with significant potential impacts.';
+                } else if (value > 30) {
+                    complexityLabel = 'Medium';
+                    complexityDescription = 'This bill has moderately complex provisions with potential impacts.';
+                }
+                
+                return `${complexityLabel} Complexity (${value}%): ${complexityDescription}`;
+            },
+            showLabels: true,
+            labelFormat: value => {
+                let label = 'Low';
+                if (value > 70) label = 'High';
+                else if (value > 30) label = 'Medium';
+                return `${label} (${value}%)`;
+            }
+        });
+        
+        // Set the complexity value with animation
+        meter.setValue(complexityScore);
+    }
+});
+</script>
 {% endblock %}
