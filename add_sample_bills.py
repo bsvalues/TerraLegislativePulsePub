@@ -215,24 +215,24 @@ def add_sample_bills():
             
             # Local documents
             {
-                'bill_id': 'BCC-2025-014',
-                'title': 'Benton County ordinance on property assessment appeals',
+                'bill_id': 'WA-2025-014',
+                'title': 'Washington County ordinance on property assessment appeals',
                 'description': """
-                BENTON COUNTY ORDINANCE NO. BCC-2025-014
+                WASHINGTON COUNTY ORDINANCE NO. WA-2025-014
                 
-                AN ORDINANCE relating to property assessment appeals; amending Benton County Code Chapter 4.40; and establishing effective dates.
+                AN ORDINANCE relating to property assessment appeals; amending Washington County Code Chapter 4.40; and establishing effective dates.
                 
-                WHEREAS, the Benton County Board of Commissioners recognizes the importance of a fair and transparent property assessment appeals process; and
+                WHEREAS, the Washington County Board of Commissioners recognizes the importance of a fair and transparent property assessment appeals process; and
                 
                 WHEREAS, improvements to the appeals process can enhance taxpayer understanding and compliance; now, therefore,
                 
-                THE BOARD OF COUNTY COMMISSIONERS OF BENTON COUNTY, WASHINGTON, DO ORDAIN AS FOLLOWS:
+                THE BOARD OF COUNTY COMMISSIONERS OF WASHINGTON COUNTY, WASHINGTON, DO ORDAIN AS FOLLOWS:
                 
-                Section 1. Benton County Code Chapter 4.40 is amended as follows:
+                Section 1. Washington County Code Chapter 4.40 is amended as follows:
                 
                 4.40.010 Assessment Appeal Process.
                 (a) Property owners may appeal their property assessment by:
-                    (1) Filing a petition with the Benton County Board of Equalization within thirty days of the date the assessment notice was mailed;
+                    (1) Filing a petition with the Washington County Board of Equalization within thirty days of the date the assessment notice was mailed;
                     (2) Providing documentation supporting their appeal claim; and
                     (3) Participating in a pre-hearing conference with the County Assessor's office.
                 
@@ -250,10 +250,10 @@ def add_sample_bills():
                 
                 Section 2. This ordinance shall take effect thirty days from the date of its passage.
                 
-                PASSED by the Board of County Commissioners of Benton County, Washington, at a regular meeting thereof, held this 15th day of March, 2025.
+                PASSED by the Board of County Commissioners of Washington County, Washington, at a regular meeting thereof, held this 15th day of March, 2025.
                 """,
                 'source': 'local_docs',
-                'url': 'https://www.co.benton.wa.us/ordinances/BCC-2025-014.pdf',
+                'url': 'https://www.co.washington.wa.us/ordinances/WA-2025-014.pdf',
                 'status': 'Passed',
                 'introduced_date': datetime.now() - timedelta(days=40),
                 'last_action_date': datetime.now() - timedelta(days=5),
