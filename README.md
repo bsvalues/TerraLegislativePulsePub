@@ -1,6 +1,6 @@
-# Benton County Assessor AI Platform
+# TerraLegislativePulse
 
-A sophisticated AI-driven legislative tracking platform designed to simplify complex regulatory analysis for Benton County property stakeholders.
+A sophisticated AI-driven legislative tracking platform designed to simplify complex regulatory analysis for Washington State property stakeholders.
 
 ## 🌟 Features
 
@@ -34,8 +34,8 @@ A sophisticated AI-driven legislative tracking platform designed to simplify com
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/benton-county-assessor-ai.git
-   cd benton-county-assessor-ai
+   git clone https://github.com/your-username/terra-legislative-pulse.git
+   cd terra-legislative-pulse
    ```
 
 2. Install dependencies:
@@ -45,7 +45,7 @@ A sophisticated AI-driven legislative tracking platform designed to simplify com
 
 3. Set up environment variables:
    ```bash
-   export DATABASE_URL="postgresql://username:password@localhost:5432/benton_assessor"
+   export DATABASE_URL="postgresql://username:password@localhost:5432/terralegislative"
    export SESSION_SECRET="your_secret_key"
    export FLASK_DEBUG=True
    ```
