@@ -1,7 +1,7 @@
 """
 Create Admin User
 
-This script creates an admin user for the Benton County Assessor AI Platform.
+This script creates an admin user for the TerraLegislativePulse platform.
 """
 
 from werkzeug.security import generate_password_hash
@@ -33,4 +33,4 @@ def create_admin_user(username, email, password):
         print(f"Admin user {username} created successfully.")
 
 if __name__ == "__main__":
-    create_admin_user('admin', 'admin@bentoncounty.gov', 'Admin123!')
+    create_admin_user('admin', 'admin@terralegislative.gov', 'Admin123!')

@@ -19,7 +19,7 @@ class Config:
     
     # Washington State specific configuration
     WA_STATE_CODE = 'WA'
-    BENTON_COUNTY_CODE = '005'
+    WASHINGTON_COUNTY_CODE = '005'
     
     # Property validation rules
     PARCEL_ID_PATTERN = r'^\d{8}-\d{3}$'

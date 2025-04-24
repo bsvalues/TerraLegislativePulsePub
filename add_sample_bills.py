@@ -261,10 +261,10 @@ def add_sample_bills():
                 'affected_property_classes': 'Residential, Commercial, Industrial, Agricultural, Vacant Land, Public'
             },
             {
-                'bill_id': 'BCC-2025-021',
-                'title': 'Benton County resolution on special assessment districts',
+                'bill_id': 'WA-2025-021',
+                'title': 'Washington County resolution on special assessment districts',
                 'description': """
-                BENTON COUNTY RESOLUTION NO. BCC-2025-021
+                WASHINGTON COUNTY RESOLUTION NO. WA-2025-021
                 
                 A RESOLUTION establishing guidelines for the creation and management of special assessment districts; and providing for implementation procedures.
                 
@@ -272,7 +272,7 @@ def add_sample_bills():
                 
                 WHEREAS, standardized guidelines for special assessment districts will ensure equitable administration and transparent operations; now, therefore,
                 
-                BE IT RESOLVED BY THE BOARD OF COUNTY COMMISSIONERS OF BENTON COUNTY, WASHINGTON, AS FOLLOWS:
+                BE IT RESOLVED BY THE BOARD OF COUNTY COMMISSIONERS OF WASHINGTON COUNTY, WASHINGTON, AS FOLLOWS:
                 
                 Section 1. Special Assessment District Guidelines.
                 
@@ -296,10 +296,10 @@ def add_sample_bills():
                 
                 Section 2. The County Assessor's Office is hereby directed to develop detailed procedures implementing this resolution within ninety days.
                 
-                ADOPTED by the Board of County Commissioners of Benton County, Washington, at a regular meeting thereof, held this 12th day of April, 2025.
+                ADOPTED by the Board of County Commissioners of Washington County, Washington, at a regular meeting thereof, held this 12th day of April, 2025.
                 """,
                 'source': 'local_docs',
-                'url': 'https://www.co.benton.wa.us/resolutions/BCC-2025-021.pdf',
+                'url': 'https://www.co.washington.wa.us/resolutions/WA-2025-021.pdf',
                 'status': 'Passed',
                 'introduced_date': datetime.now() - timedelta(days=20),
                 'last_action_date': datetime.now() - timedelta(days=2),
