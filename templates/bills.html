@@ -123,6 +123,9 @@
                                         }.get(bill.status, 'secondary') %}
                                         <span class="badge bg-{{ status_class }} bill-status-badge">{{ bill.status }}</span>
                                     </td>
+                                    <td>
+                                        <div id="complexity-meter-{{ loop.index }}" class="complexity-meter-container" data-bill-id="{{ bill.bill_id }}" data-bill-status="{{ bill.status }}" data-bill-title="{{ bill.title }}" data-bill-last-action="{{ bill.last_action_date }}" data-bill-description="{{ bill.description if bill.description else '' }}"></div>
+                                    </td>
                                     <td>{{ bill.last_action_date }}</td>
                                     <td>
                                         <div class="btn-group">
@@ -139,7 +142,7 @@
                                 {% endfor %}
                             {% else %}
                                 <tr>
-                                    <td colspan="6" class="text-center py-4">
+                                    <td colspan="7" class="text-center py-4">
                                         <div class="p-4">
                                             <i class="bi bi-search fs-1 text-muted"></i>
                                             <p class="mt-3">No bills found. Try adjusting your search criteria.</p>
@@ -154,4 +157,46 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get all complexity meter containers
+    const complexityContainers = document.querySelectorAll('.complexity-meter-container');
+    
+    // Initialize each complexity meter
+    complexityContainers.forEach(container => {
+        // Get bill data from data attributes
+        const billData = {
+            id: container.dataset.billId,
+            title: container.dataset.billTitle,
+            status: container.dataset.billStatus,
+            last_action_date: container.dataset.billLastAction,
+            description: container.dataset.billDescription
+        };
+        
+        // Calculate complexity score
+        const complexityScore = calculateLegislativeComplexity(billData);
+        
+        // Initialize the complexity meter
+        const meter = new ComplexityMeter(container.id, {
+            tooltipFormat: value => {
+                let complexityLabel = 'Low';
+                if (value > 70) {
+                    complexityLabel = 'High';
+                } else if (value > 30) {
+                    complexityLabel = 'Medium';
+                }
+                return `${complexityLabel} Complexity: ${value}%`;
+            },
+            thresholds: [30, 70],
+            colors: ['#28a745', '#ffc107', '#dc3545']
+        });
+        
+        // Set the complexity value
+        meter.setValue(complexityScore);
+    });
+});
+</script>
 {% endblock %}
