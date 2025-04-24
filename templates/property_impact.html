@@ -355,8 +355,57 @@
             setTimeout(() => {
                 loadingDiv.remove();
                 analysisResults.classList.remove('d-none');
+                
+                // Initialize complexity meters after results are shown
+                initializeComplexityMeters();
             }, 1500);
         });
+    });
+    
+    // Function to initialize all complexity meters on the page
+    function initializeComplexityMeters() {
+        // Get all complexity meter containers
+        const complexityContainers = document.querySelectorAll('.complexity-meter-container');
+        
+        // Initialize each complexity meter
+        complexityContainers.forEach(container => {
+            if (!container.id) return; // Skip if no ID
+            
+            // Get bill data from data attributes
+            const billData = {
+                id: container.dataset.billId,
+                title: container.dataset.billTitle,
+                status: container.dataset.billStatus,
+                last_action_date: container.dataset.billLastAction,
+                description: container.dataset.billDescription
+            };
+            
+            // Calculate complexity score
+            const complexityScore = calculateLegislativeComplexity(billData);
+            
+            // Initialize the complexity meter
+            const meter = new ComplexityMeter(container.id, {
+                tooltipFormat: value => {
+                    let complexityLabel = 'Low';
+                    if (value > 70) {
+                        complexityLabel = 'High';
+                    } else if (value > 30) {
+                        complexityLabel = 'Medium';
+                    }
+                    return `${complexityLabel} Complexity: ${value}%`;
+                },
+                thresholds: [30, 70],
+                colors: ['#28a745', '#ffc107', '#dc3545']
+            });
+            
+            // Set the complexity value
+            meter.setValue(complexityScore);
+        });
+    }
+    
+    // Initialize complexity meters for initially visible content
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeComplexityMeters();
     });
 </script>
 {% endblock %}
