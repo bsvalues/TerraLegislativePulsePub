@@ -2,7 +2,7 @@ import os
 
 class Config:
     # Flask configuration
-    SECRET_KEY = os.environ.get('SESSION_SECRET', 'benton_county_assessor_default_key')
+    SECRET_KEY = os.environ.get('SESSION_SECRET', 'terra_legislative_pulse_default_key')
     DEBUG = os.environ.get('FLASK_DEBUG', 'True') == 'True'
     
     # Database configuration
