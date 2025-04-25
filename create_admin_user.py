@@ -5,7 +5,8 @@ This script creates an admin user for the TerraLegislativePulse platform.
 """
 
 from werkzeug.security import generate_password_hash
-from app import app, db
+from app import app
+from bootstrap import db
 from models import User
 
 def create_admin_user(username, email, password):

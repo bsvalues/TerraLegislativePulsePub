@@ -187,27 +187,21 @@ def property_validation():
             'valuation_method': request.form.get('valuation_method')
         }
         
-        # Create a data validation agent to validate the property data
-        from agents.data_validation_agent import DataValidationAgent
-        validation_agent = DataValidationAgent()
-        
-        # Create an MCP message to send to the validation agent
+        # Send validation request through MCP
         from mcp.message_protocol import MCPMessage
+        mcp = current_app.extensions['mcp']
         message = MCPMessage(
             message_type='property_validation',
             sender='web',
             data={'property_data': property_data}
         )
-        
-        # Process the message and get the response
-        response = validation_agent.process_message(message)
+        response = mcp.route_message(message)
         
         # Extract validation results
-        if response and response.success:
+        if response.success:
             validation_results = response.data.get('validation_results')
         else:
-            error = response.error if response else "Unknown error"
-            flash(f"Validation error: {error}", "danger")
+            flash(f"Validation error: {response.error}", "danger")
     
     # Get property classes from config
     property_classes = current_app.config.get('PROPERTY_CLASSIFICATIONS', {})
@@ -239,33 +233,22 @@ def property_valuation():
             'bathrooms': request.form.get('bathrooms')
         }
         
-        # Get valuation approach
         approach = request.form.get('valuation_approach', 'market')
         
-        # Create a valuation agent to calculate the property value
-        from agents.valuation_agent import ValuationAgent
-        valuation_agent = ValuationAgent()
-        
-        # Create an MCP message to send to the valuation agent
+        # Send valuation request through MCP
         from mcp.message_protocol import MCPMessage
+        mcp = current_app.extensions['mcp']
         message = MCPMessage(
             message_type='property_valuation',
             sender='web',
-            data={
-                'property_data': property_data,
-                'approach': approach
-            }
+            data={'property_data': property_data, 'approach': approach}
         )
+        response = mcp.route_message(message)
         
-        # Process the message and get the response
-        response = valuation_agent.process_message(message)
-        
-        # Extract valuation results
-        if response and response.success:
+        if response.success:
             valuation_results = response.data.get('valuation_results')
         else:
-            error = response.error if response else "Unknown error"
-            flash(f"Valuation error: {error}", "danger")
+            flash(f"Valuation error: {response.error}", "danger")
     
     # Get property classes and valuation methods from config
     property_classes = current_app.config.get('PROPERTY_CLASSIFICATIONS', {})

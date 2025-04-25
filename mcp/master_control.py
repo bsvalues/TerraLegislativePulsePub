@@ -13,6 +13,7 @@ class MasterControlProgram:
     def __init__(self):
         self.agents = {}
         self.agent_status = {}
+        self.handlers = []  # Pipeline of message handlers
         logger.info("MCP initialized")
     
     def register_agent(self, agent):
@@ -20,8 +21,24 @@ class MasterControlProgram:
         agent_type = agent.__class__.__name__
         self.agents[agent_type] = agent
         self.agent_status[agent_type] = 'active'
+        # Add handlers to pipeline for this agent
+        self._add_handlers_for(agent)
         logger.info(f"Agent registered: {agent_type}")
         return True
+
+    def _add_handlers_for(self, agent):
+        """Add message handlers to the pipeline based on agent type"""
+        agent_type = agent.__class__.__name__
+        if agent_type == 'DataValidationAgent':
+            # Handle validation messages from web
+            self.handlers.append(('property_validation', agent.process_message))
+            self.handlers.append(('batch_validate', agent.process_batch))
+        elif agent_type == 'ValuationAgent':
+            self.handlers.append(('property_valuation', agent.process_message))
+        elif agent_type == 'PropertyImpactAgent':
+            self.handlers.append(('property_impact', agent.process_message))
+        elif agent_type == 'UserInteractionAgent':
+            self.handlers.append(('user_query', agent.process_message))
     
     def unregister_agent(self, agent_type):
         """Unregister an agent from the MCP"""
@@ -42,43 +59,16 @@ class MasterControlProgram:
     
     def route_message(self, message):
         """
-        Route a message to the appropriate agent based on the message type
-        
-        Args:
-            message (MCPMessage): The message to route
-            
-        Returns:
-            MCPResponse: The response from the agent
+        Route a message through the handler pipeline
         """
         try:
-            message_type = message.get_type()
-            
-            # Route to the appropriate agent based on message type
-            if message_type == 'property_validate':
-                if 'DataValidationAgent' in self.agents:
-                    return self.agents['DataValidationAgent'].process_message(message)
-            
-            elif message_type == 'property_value':
-                if 'ValuationAgent' in self.agents:
-                    return self.agents['ValuationAgent'].process_message(message)
-            
-            elif message_type == 'property_impact':
-                if 'PropertyImpactAgent' in self.agents:
-                    return self.agents['PropertyImpactAgent'].process_message(message)
-            
-            elif message_type == 'user_query':
-                if 'UserInteractionAgent' in self.agents:
-                    return self.agents['UserInteractionAgent'].process_message(message)
-            
-            # Handle batch operations
-            elif message_type == 'batch_validate':
-                if 'DataValidationAgent' in self.agents:
-                    return self.agents['DataValidationAgent'].process_batch(message)
-            
-            # If we get here, either the message type was invalid or the required agent is not registered
-            logger.error(f"Unable to route message of type {message_type}")
-            return MCPResponse(success=False, data=None, error=f"No agent available to handle message type: {message_type}")
-            
+            msg_type = message.get_type()
+            for msg_key, handler in self.handlers:
+                if msg_key == msg_type:
+                    return handler(message)
+            # No handler matched
+            logger.error(f"No handler available for message type {msg_type}")
+            return MCPResponse(success=False, data=None, error=f"No handler for message type: {msg_type}")
         except Exception as e:
             logger.exception(f"Error routing message: {str(e)}")
             return MCPResponse(success=False, data=None, error=f"Error routing message: {str(e)}")
@@ -97,8 +87,8 @@ class MasterControlProgram:
         try:
             # Map API endpoints to message types
             endpoint_to_type = {
-                '/api/mcp/property-validate': 'property_validate',
-                '/api/mcp/property-value': 'property_value',
+                '/api/mcp/property-validate': 'property_validation',
+                '/api/mcp/property-value': 'property_valuation',
                 '/api/mcp/property-impact': 'property_impact',
                 '/api/mcp/user-query': 'user_query',
                 '/api/mcp/batch-validate': 'batch_validate'

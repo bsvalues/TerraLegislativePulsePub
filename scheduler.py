@@ -11,8 +11,8 @@ import logging
 import threading
 import schedule
 from datetime import datetime
-from flask import Flask, current_app
-import os
+from app import create_app
+from bootstrap import db
 
 # Configure logging
 logging.basicConfig(
@@ -20,24 +20,6 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-
-def create_app():
-    """Create a minimal Flask app for the scheduler context"""
-    app = Flask(__name__)
-    
-    # Configure database
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
-    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-        "pool_recycle": 300,
-        "pool_pre_ping": True,
-    }
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    
-    # Configure API keys from environment
-    app.config['LEGISCAN_API_KEY'] = os.environ.get('LEGISCAN_API_KEY')
-    app.config['OPENSTATES_API_KEY'] = os.environ.get('OPENSTATES_API_KEY')
-    
-    return app
 
 def update_wa_legislature_tracker():
     """Update the Washington State Legislature tracker"""
@@ -90,9 +72,8 @@ def update_local_docs_tracker():
 def update_all_trackers():
     """Update all legislative trackers"""
     logger.info("Starting scheduled update of all trackers...")
-    app = create_app()
-    
-    with app.app_context():
+    scheduler_app = create_app()
+    with scheduler_app.app_context():
         wa_count = update_wa_legislature_tracker()
         time.sleep(1)  # Pause to avoid rate limits
         
@@ -137,5 +118,5 @@ def start_scheduler_thread():
     return scheduler_thread
 
 if __name__ == "__main__":
-    logger.info("Running legislative tracker scheduler as standalone process")
+    logger.info("Running legislative tracker scheduler")
     run_scheduler()

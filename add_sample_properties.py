@@ -6,7 +6,8 @@ This script adds sample property data to the database for testing purposes.
 
 import logging
 from datetime import datetime, timedelta
-from app import app, db
+from app import app
+from bootstrap import db
 from models import Property, Assessment
 
 logger = logging.getLogger(__name__)
