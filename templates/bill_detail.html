@@ -81,30 +81,74 @@
 {% block content %}
 <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between py-3">
     <div>
-        <nav aria-label="breadcrumb">
+        <nav aria-label="breadcrumb" class="d-none d-md-block">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ url_for('web.dashboard') }}">Dashboard</a></li>
                 <li class="breadcrumb-item"><a href="{{ url_for('web.bills') }}">Bills</a></li>
                 <li class="breadcrumb-item active" aria-current="page">{{ bill.bill_id }}</li>
             </ol>
         </nav>
-    </div>
-    <div class="d-flex mb-3 mb-md-0">
-        <a href="{{ url_for('web.bills') }}" class="btn btn-outline-secondary me-2">
+        <!-- Mobile back button -->
+        <a href="{{ url_for('web.bills') }}" class="btn btn-outline-secondary d-md-none mb-3">
             <i class="bi bi-arrow-left me-1"></i> Back to Bills
         </a>
-        <div class="btn-group ms-2">
-            <button type="button" class="btn btn-outline-primary">
-                <i class="bi bi-file-earmark-pdf me-1"></i> Export
-            </button>
-            <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
-                <span class="visually-hidden">Toggle Dropdown</span>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="#">PDF</a></li>
-                <li><a class="dropdown-item" href="#">Word</a></li>
-                <li><a class="dropdown-item" href="#">HTML</a></li>
-            </ul>
+    </div>
+    <div class="d-flex mb-3 mb-md-0">
+        <!-- Desktop action buttons -->
+        <div class="d-none d-md-flex">
+            <a href="{{ url_for('web.bills') }}" class="btn btn-outline-secondary me-2">
+                <i class="bi bi-arrow-left me-1"></i> Back to Bills
+            </a>
+            <div class="btn-group ms-2">
+                <button type="button" class="btn btn-outline-primary">
+                    <i class="bi bi-file-earmark-pdf me-1"></i> Export
+                </button>
+                <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
+                    <span class="visually-hidden">Toggle Dropdown</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="#">PDF</a></li>
+                    <li><a class="dropdown-item" href="#">Word</a></li>
+                    <li><a class="dropdown-item" href="#">HTML</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Mobile action button (shows modal with options) -->
+        <button type="button" class="btn btn-primary d-md-none" data-bs-toggle="modal" data-bs-target="#billActionsModal">
+            <i class="bi bi-three-dots-vertical me-1"></i> Actions
+        </button>
+    </div>
+</div>
+
+<!-- Mobile actions modal -->
+<div class="modal fade" id="billActionsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Bill Actions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="list-group">
+                    <a href="#" class="list-group-item list-group-item-action d-flex align-items-center py-3" id="exportPdfBtn">
+                        <i class="bi bi-file-earmark-pdf fs-4 me-3 text-danger"></i>
+                        <span>Export as PDF</span>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action d-flex align-items-center py-3" id="exportWordBtn">
+                        <i class="bi bi-file-earmark-word fs-4 me-3 text-primary"></i>
+                        <span>Export as Word</span>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action d-flex align-items-center py-3" id="exportHtmlBtn">
+                        <i class="bi bi-file-earmark-code fs-4 me-3 text-success"></i>
+                        <span>Export as HTML</span>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action d-flex align-items-center py-3" id="shareBillBtn">
+                        <i class="bi bi-share fs-4 me-3 text-info"></i>
+                        <span>Share Bill</span>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -183,7 +227,186 @@
     </div>
 </div>
 
-<div class="row mb-4">
+<!-- Mobile tab navigation (swipe-enabled) -->
+<div class="d-md-none mb-4">
+    <ul class="nav nav-pills nav-fill" id="mobileBillDetailTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active px-2" id="mobile-summary-tab" data-bs-toggle="tab" data-bs-target="#mobile-summary" 
+                    type="button" role="tab" aria-controls="mobile-summary" aria-selected="true">
+                <i class="bi bi-file-text d-block mb-1"></i> Summary
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link px-2" id="mobile-analysis-tab" data-bs-toggle="tab" data-bs-target="#mobile-analysis" 
+                    type="button" role="tab" aria-controls="mobile-analysis" aria-selected="false">
+                <i class="bi bi-bar-chart-fill d-block mb-1"></i> Impact
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link px-2" id="mobile-entities-tab" data-bs-toggle="tab" data-bs-target="#mobile-entities" 
+                    type="button" role="tab" aria-controls="mobile-entities" aria-selected="false">
+                <i class="bi bi-diagram-3 d-block mb-1"></i> Entities
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link px-2" id="mobile-fulltext-tab" data-bs-toggle="tab" data-bs-target="#mobile-fulltext" 
+                    type="button" role="tab" aria-controls="mobile-fulltext" aria-selected="false">
+                <i class="bi bi-file-earmark d-block mb-1"></i> Text
+            </button>
+        </li>
+    </ul>
+    
+    <!-- Mobile tab content (swipeable) -->
+    <div class="tab-content mt-3" id="mobileBillDetailTabsContent">
+        <div class="tab-pane fade show active" id="mobile-summary" role="tabpanel" aria-labelledby="mobile-summary-tab">
+            <div class="card shadow">
+                <div class="card-body">
+                    {% if analysis and analysis.summary %}
+                        <h5 class="card-title">AI-Generated Summary</h5>
+                        <p class="mb-4">{{ analysis.summary }}</p>
+                        
+                        {% if analysis.key_provisions %}
+                            <h5 class="card-title">Key Provisions</h5>
+                            <ul class="mb-0">
+                                {% for provision in analysis.key_provisions %}
+                                    <li class="mb-2">{{ provision }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-file-earmark-text fs-1 text-muted"></i>
+                            <p class="mt-3">No summary available.</p>
+                            <button class="btn btn-primary">
+                                <i class="bi bi-lightning-charge me-2"></i> Generate Summary
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-pane fade" id="mobile-analysis" role="tabpanel" aria-labelledby="mobile-analysis-tab">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-bar-chart-fill me-2"></i> Impact Analysis
+                </div>
+                <div class="card-body">
+                    {% if analysis and analysis.property_impacts %}
+                        {% for impact in analysis.property_impacts %}
+                            <div class="impact-item">
+                                {% set impact_level = impact.severity|default('medium')|lower %}
+                                {% set impact_icon = {
+                                    'high': 'exclamation-triangle-fill',
+                                    'medium': 'exclamation-circle',
+                                    'low': 'info-circle'
+                                }.get(impact_level, 'info-circle') %}
+                                <div class="impact-item-icon impact-{{ impact_level }}">
+                                    <i class="bi bi-{{ impact_icon }}"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">{{ impact.area }}</h6>
+                                    <p class="mb-0 text-muted">{{ impact.description }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-clipboard-data fs-1 text-muted"></i>
+                            <p class="mt-3">No impact analysis available.</p>
+                            <button class="btn btn-primary">
+                                <i class="bi bi-lightning-charge me-2"></i> Generate Analysis
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-pane fade" id="mobile-entities" role="tabpanel" aria-labelledby="mobile-entities-tab">
+            <div class="card shadow">
+                <div class="card-body">
+                    {% if analysis and analysis.entities %}
+                        <div class="mb-4">
+                            <h5 class="card-title mb-3">Organizations</h5>
+                            <div class="mb-3">
+                                {% for entity in analysis.entities.organizations|default([]) %}
+                                    <span class="badge bg-primary entity-tag">{{ entity }}</span>
+                                {% else %}
+                                    <p class="text-muted">No organizations found</p>
+                                {% endfor %}
+                            </div>
+                            
+                            <h5 class="card-title mb-3">People</h5>
+                            <div class="mb-3">
+                                {% for entity in analysis.entities.people|default([]) %}
+                                    <span class="badge bg-info entity-tag">{{ entity }}</span>
+                                {% else %}
+                                    <p class="text-muted">No people found</p>
+                                {% endfor %}
+                            </div>
+                            
+                            <h5 class="card-title mb-3">Locations</h5>
+                            <div class="mb-3">
+                                {% for entity in analysis.entities.locations|default([]) %}
+                                    <span class="badge bg-success entity-tag">{{ entity }}</span>
+                                {% else %}
+                                    <p class="text-muted">No locations found</p>
+                                {% endfor %}
+                            </div>
+                            
+                            <h5 class="card-title mb-3">Legal References</h5>
+                            <div>
+                                {% for entity in analysis.entities.legal_references|default([]) %}
+                                    <span class="badge bg-warning entity-tag">{{ entity }}</span>
+                                {% else %}
+                                    <p class="text-muted">No legal references found</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-diagram-3 fs-1 text-muted"></i>
+                            <p class="mt-3">No entity extraction available.</p>
+                            <button class="btn btn-primary">
+                                <i class="bi bi-lightning-charge me-2"></i> Extract Entities
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-pane fade" id="mobile-fulltext" role="tabpanel" aria-labelledby="mobile-fulltext-tab">
+            <div class="card shadow">
+                <div class="card-body">
+                    {% if bill.description %}
+                        <h5 class="card-title">Bill Text</h5>
+                        <div class="bg-body-tertiary p-3 rounded mb-3" style="max-height: 300px; overflow-y: auto;">
+                            <pre class="mb-0" style="white-space: pre-wrap; font-size: 0.85rem;">{{ bill.description }}</pre>
+                        </div>
+                        <div class="d-grid">
+                            <a href="{{ bill.url }}" target="_blank" class="btn btn-primary">
+                                <i class="bi bi-eye me-1"></i> View Original Source
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-file-earmark fs-1 text-muted"></i>
+                            <p class="mt-3">Full text not available.</p>
+                            <a href="{{ bill.url }}" target="_blank" class="btn btn-outline-primary">
+                                <i class="bi bi-box-arrow-up-right me-1"></i> View at Source
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Desktop layout -->
+<div class="row mb-4 d-none d-md-flex">
     <div class="col-md-4 mb-4 mb-md-0">
         <div class="card shadow impact-card">
             <div class="card-header bg-primary text-white">
