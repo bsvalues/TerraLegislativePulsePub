@@ -577,6 +577,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Get the complexity meter container
     const complexityContainer = document.getElementById('bill-complexity-meter');
+    let complexityScore = 0;
     
     if (complexityContainer) {
         // Get bill data from data attributes
@@ -589,7 +590,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         
         // Calculate complexity score
-        const complexityScore = calculateLegislativeComplexity(billData);
+        complexityScore = calculateLegislativeComplexity(billData);
         
         // Initialize the complexity meter with more detailed configuration for the detail page
         const meter = new ComplexityMeter('bill-complexity-meter', {
@@ -622,6 +623,118 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Set the complexity value with animation
         meter.setValue(complexityScore);
+    }
+
+    // Mobile functionality
+    // Initialize mobile complexity meter if it exists
+    const mobileMeterContainer = document.getElementById('mobile-complexity-meter');
+    if (mobileMeterContainer && complexityContainer) {
+        // Initialize mobile complexity meter using data and score from desktop
+        const mobileMeter = new ComplexityMeter('mobile-complexity-meter', {
+            minValue: 0,
+            maxValue: 100,
+            thresholds: [30, 70],
+            colors: ['#28a745', '#ffc107', '#dc3545'],
+            showLabels: true,
+            size: 'small',
+            labelFormat: value => {
+                let label = 'Low';
+                if (value > 70) label = 'High';
+                else if (value > 30) label = 'Medium';
+                return `${label}`;
+            }
+        });
+        
+        // Set the same complexity value
+        mobileMeter.setValue(complexityScore);
+    }
+    
+    // Mobile tab swiping functionality
+    const mobileTabs = document.getElementById('mobileBillDetailTabs');
+    if (mobileTabs) {
+        const mobileTabContent = document.getElementById('mobileBillDetailTabsContent');
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        // Get all tab buttons and panes
+        const tabButtons = Array.from(document.querySelectorAll('#mobileBillDetailTabs .nav-link'));
+        
+        // Touch event handlers for swipe
+        mobileTabContent.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+        
+        mobileTabContent.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+        
+        // Determine swipe direction and change tab
+        function handleSwipe() {
+            // Find current active tab index
+            const currentTabIndex = tabButtons.findIndex(btn => btn.classList.contains('active'));
+            
+            // Calculate swipe distance
+            const swipeDistance = touchEndX - touchStartX;
+            const minSwipeDistance = 50; // Minimum distance to trigger tab change
+            
+            // If swiped left and not on the last tab
+            if (swipeDistance < -minSwipeDistance && currentTabIndex < tabButtons.length - 1) {
+                // Activate next tab
+                tabButtons[currentTabIndex + 1].click();
+            }
+            
+            // If swiped right and not on the first tab
+            if (swipeDistance > minSwipeDistance && currentTabIndex > 0) {
+                // Activate previous tab
+                tabButtons[currentTabIndex - 1].click();
+            }
+        }
+    }
+    
+    // Mobile action buttons functionality
+    const mobileActionButtons = {
+        exportPdf: document.getElementById('exportPdfBtn'),
+        exportWord: document.getElementById('exportWordBtn'),
+        exportHtml: document.getElementById('exportHtmlBtn'),
+        share: document.getElementById('shareBillBtn')
+    };
+    
+    if (mobileActionButtons.share) {
+        mobileActionButtons.share.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Use Web Share API if available
+            if (navigator.share) {
+                navigator.share({
+                    title: document.title,
+                    url: window.location.href
+                }).catch(err => {
+                    console.log('Share failed:', err);
+                });
+            }
+            
+            // Close the modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('billActionsModal'));
+            if (modal) modal.hide();
+        });
+    }
+    
+    // Export actions (placeholder functionality)
+    for (const [action, button] of Object.entries(mobileActionButtons)) {
+        if (button && action !== 'share') {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Close the modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('billActionsModal'));
+                if (modal) modal.hide();
+                
+                // Alert for demonstration purposes
+                // In a real implementation, this would trigger the export functionality
+                console.log(`Export as ${action.replace('export', '')} requested`);
+            });
+        }
     }
 });
 </script>
