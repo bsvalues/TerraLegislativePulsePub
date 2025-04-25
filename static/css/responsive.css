@@ -1,0 +1,248 @@
+/* TerraLegislativePulse - Responsive Design Styles */
+
+/* Mobile-friendly adjustments */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .table-responsive {
+        border: 0;
+    }
+    
+    /* Adjusted header for mobile */
+    .bill-header .bill-status {
+        position: static;
+        margin-bottom: 1rem;
+        display: inline-block;
+    }
+    
+    /* Stack form elements on mobile */
+    .search-form .input-group {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .search-form .input-group .form-control,
+    .search-form .input-group .btn {
+        width: 100%;
+        margin-right: 0;
+        border-radius: 0.25rem !important;
+    }
+    
+    .search-form .input-group .btn {
+        margin-top: 0.5rem;
+    }
+    
+    /* Improved touch targets */
+    .btn {
+        padding: 0.5rem 1rem;
+        min-height: 44px;
+    }
+    
+    .nav-link {
+        padding: 0.75rem 1rem;
+    }
+    
+    /* Mobile optimized sidebar */
+    .mobile-sidebar {
+        position: fixed;
+        top: 56px;
+        left: 0;
+        width: 80%;
+        height: calc(100vh - 56px);
+        z-index: 1040;
+        overflow-y: auto;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+    }
+    
+    .mobile-sidebar.show {
+        transform: translateX(0);
+    }
+    
+    .mobile-sidebar-backdrop {
+        position: fixed;
+        top: 56px;
+        left: 0;
+        width: 100%;
+        height: calc(100vh - 56px);
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1030;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease-in-out;
+    }
+    
+    .mobile-sidebar-backdrop.show {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    /* Mobile-friendly tables */
+    .mobile-table-view {
+        display: block;
+    }
+    
+    .mobile-table-view .mobile-table-card {
+        margin-bottom: 1rem;
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+    
+    .mobile-table-view .mobile-table-card-header {
+        background-color: rgba(0, 0, 0, 0.03);
+        padding: 0.75rem 1rem;
+        font-weight: 600;
+    }
+    
+    .mobile-table-view .mobile-table-card-body {
+        padding: 1rem;
+    }
+    
+    .mobile-table-view .mobile-table-card-item {
+        display: flex;
+        margin-bottom: 0.5rem;
+    }
+    
+    .mobile-table-view .mobile-table-card-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .mobile-table-view .mobile-table-card-label {
+        width: 120px;
+        font-weight: 500;
+        color: var(--bs-gray-600);
+    }
+    
+    .mobile-table-view .mobile-table-card-value {
+        flex: 1;
+    }
+    
+    /* Swipe actions */
+    .swipe-container {
+        position: relative;
+        overflow: hidden;
+        touch-action: pan-y;
+    }
+    
+    .swipe-item {
+        position: relative;
+        background-color: #fff;
+        transition: transform 0.3s ease-out;
+    }
+    
+    .swipe-actions {
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 100%;
+        display: flex;
+    }
+    
+    .swipe-action {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 1.5rem;
+        color: #fff;
+        text-align: center;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+    
+    .swipe-action-view {
+        background-color: var(--bs-primary);
+    }
+    
+    .swipe-action-analyze {
+        background-color: var(--bs-success);
+    }
+    
+    /* Pull-to-refresh indicator */
+    .pull-to-refresh {
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--bs-gray-600);
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin: -1rem -1rem 1rem -1rem;
+        transform: translateY(-100%);
+        transition: transform 0.3s ease-out;
+    }
+    
+    .pull-to-refresh.visible {
+        transform: translateY(0);
+    }
+    
+    .pull-to-refresh .spinner {
+        width: 20px;
+        height: 20px;
+        margin-right: 0.5rem;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        from {
+            transform: rotate(0);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+    
+    /* Mobile menu badge */
+    .mobile-menu-badge {
+        position: absolute;
+        right: 1rem;
+        bottom: 1rem;
+        background-color: var(--bs-primary);
+        color: white;
+        border-radius: 50%;
+        width: 56px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+        z-index: 1020;
+    }
+}
+
+/* Tablet adjustments */
+@media (min-width: 769px) and (max-width: 992px) {
+    .sidebar {
+        width: 220px;
+    }
+    
+    .card-deck .card {
+        margin-right: 10px;
+        margin-left: 10px;
+    }
+    
+    .bill-header {
+        padding: 1.5rem;
+    }
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+    .mobile-sidebar {
+        width: 50%;
+    }
+}
+
+/* High-res displays */
+@media (min-width: 1200px) {
+    .container-lg {
+        max-width: 1340px;
+    }
+}

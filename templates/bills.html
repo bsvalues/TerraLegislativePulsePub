@@ -55,19 +55,20 @@
 </div>
 
 <div class="row mb-4">
-    <div class="col-md-8">
-        <form action="{{ url_for('web.bills') }}" method="get">
-            <div class="input-group mb-3">
+    <div class="col-md-8 mb-3 mb-md-0">
+        <form action="{{ url_for('web.bills') }}" method="get" class="search-form">
+            <div class="input-group">
                 <input type="text" class="form-control search-bar" placeholder="Search bills by keyword, title, or ID..." 
-                       name="query" value="{{ current_query }}">
+                       name="query" value="{{ current_query }}" autocomplete="off" autocorrect="off" autocapitalize="off">
                 <button class="btn btn-primary search-btn" type="submit">
                     <i class="bi bi-search"></i>
+                    <span class="d-none d-md-inline ms-2">Search</span>
                 </button>
             </div>
         </form>
     </div>
     <div class="col-md-4">
-        <select class="form-select" name="source" onchange="this.form.submit()">
+        <select class="form-select form-select-lg" name="source" id="sourceFilter" aria-label="Filter by source">
             <option value="">All Sources</option>
             {% for source in sources %}
             <option value="{{ source }}" {% if source == current_source %}selected{% endif %}>
@@ -75,6 +76,25 @@
             </option>
             {% endfor %}
         </select>
+    </div>
+</div>
+
+<!-- Mobile quick filters -->
+<div class="d-flex d-md-none mb-3 overflow-auto py-2" style="scrollbar-width: none; -ms-overflow-style: none;">
+    <div class="badge bg-primary text-white py-2 px-3 me-2 d-flex align-items-center" style="white-space: nowrap; min-width: auto;">
+        <i class="bi bi-funnel me-2"></i> All
+    </div>
+    <div class="badge bg-light text-dark py-2 px-3 me-2" style="white-space: nowrap; min-width: auto;">
+        Active
+    </div>
+    <div class="badge bg-light text-dark py-2 px-3 me-2" style="white-space: nowrap; min-width: auto;">
+        Pending
+    </div>
+    <div class="badge bg-light text-dark py-2 px-3 me-2" style="white-space: nowrap; min-width: auto;">
+        Passed
+    </div>
+    <div class="badge bg-light text-dark py-2 px-3 me-2" style="white-space: nowrap; min-width: auto;">
+        High Impact
     </div>
 </div>
 
@@ -102,7 +122,7 @@
                         <tbody>
                             {% if bills %}
                                 {% for bill in bills %}
-                                <tr>
+                                <tr class="bill-row">
                                     <td>{{ bill.bill_id }}</td>
                                     <td>{{ bill.title }}</td>
                                     <td>
