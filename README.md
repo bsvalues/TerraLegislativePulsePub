@@ -1,108 +1,162 @@
 # TerraLegislativePulse
 
-A sophisticated AI-driven legislative tracking platform designed to simplify complex regulatory analysis for Washington State property stakeholders.
+A comprehensive property management and assessment system for modern governance.
 
-## 🌟 Features
+## Overview
 
-- **Advanced Bill Search & Analysis Engine**: Intelligently search and analyze legislative bills from multiple sources
-- **Multi-Source Legislative Tracking**: Track bills from Washington Legislature, OpenStates, LegiScan, and local documents
-- **AI-Enhanced Bill Comprehension**: Understand complex legislative language with AI-powered summaries
-- **Property Impact Assessment**: Analyze how legislative changes affect property assessments
-- **Data Validation**: Validate property data according to Washington State standards
-- **Property Valuation**: Calculate property values using multiple approaches
+TerraLegislativePulse is an enterprise-grade solution designed to streamline property management, assessment, and tax administration. Built with modern technologies and best practices, it provides a robust platform for managing property data, assessments, and related documentation.
 
-## 📋 Key Components
+## Features
 
-- **Legislative Trackers**: Services that fetch bills from various sources
-- **Bill Analysis Service**: AI-powered service that analyzes the impact of bills on property assessments
-- **Data Validation Agent**: Validates property data according to Washington State standards
-- **Property Impact Agent**: Analyzes how legislative changes affect property assessments
-- **User Interaction Agent**: Provides a natural language interface for assessor staff
+- Property Management
+  - Comprehensive property information tracking
+  - Document management
+  - Improvement tracking
+  - Tax information management
+  - Historical record keeping
 
-## 🚀 Getting Started
+- Assessment Tools
+  - Property value assessment
+  - Tax calculation
+  - Document verification
+  - Improvement tracking
+
+- User Interface
+  - Modern, responsive design
+  - Intuitive navigation
+  - Real-time updates
+  - Comprehensive search
+
+## Technology Stack
+
+- Frontend
+  - React 18
+  - TypeScript
+  - Ant Design
+  - React Router
+
+- Backend
+  - Node.js
+  - Express
+  - TypeScript
+  - PostgreSQL
+
+- DevOps
+  - Docker
+  - Kubernetes
+  - GitHub Actions
+  - Prometheus/Grafana
+
+## Getting Started
 
 ### Prerequisites
 
-- Python 3.9+
-- PostgreSQL database
-- Required API keys (optional):
-  - ANTHROPIC_API_KEY for AI-powered analysis
-  - LEGISCAN_API_KEY for LegiScan integration
-  - OPENSTATES_API_KEY for OpenStates integration
+- Node.js 16+
+- npm 8+
+- Docker
+- Kubernetes cluster (for production)
 
 ### Installation
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/terra-legislative-pulse.git
-   cd terra-legislative-pulse
+   git clone https://github.com/your-org/terralegislativepulse.git
+   cd terralegislativepulse
    ```
 
 2. Install dependencies:
    ```bash
-   pip install -r requirements.txt
+   # Frontend
+   cd frontend
+   npm install
+
+   # Backend
+   cd ../backend
+   npm install
    ```
 
 3. Set up environment variables:
    ```bash
-   export DATABASE_URL="postgresql://username:password@localhost:5432/terralegislative"
-   export SESSION_SECRET="your_secret_key"
-   export FLASK_DEBUG=True
+   cp .env.example .env
+   # Edit .env with your configuration
    ```
 
-4. Initialize the database:
+4. Start development servers:
    ```bash
-   flask db init
-   flask db migrate
-   flask db upgrade
+   # Frontend
+   cd frontend
+   npm start
+
+   # Backend
+   cd ../backend
+   npm run dev
    ```
 
-5. Add sample data (optional):
-   ```bash
-   python add_sample_properties.py
-   python add_sample_bills.py
-   ```
+## Development
 
-6. Create an admin user:
-   ```bash
-   python create_admin_user.py admin@example.com admin password
-   ```
+### Code Style
 
-7. Run the application:
-   ```bash
-   python main.py
-   ```
+- Follow TypeScript best practices
+- Use ESLint and Prettier for code formatting
+- Write comprehensive tests
+- Document all public APIs
 
-## 🏛️ Architecture
+### Testing
 
-The application follows a modular architecture:
+```bash
+# Frontend
+cd frontend
+npm test
 
-- **Web Interface**: Flask-based web application
-- **Legislative Tracking**: Services that fetch bills from various sources
-- **AI Analysis**: AI-powered services that analyze legislative text
-- **Database**: PostgreSQL database for storing bills, properties, and assessments
-- **Agent System**: AI agents that perform specific tasks (validation, analysis, etc.)
+# Backend
+cd ../backend
+npm test
+```
 
-## 📊 Database Schema
+### Building for Production
 
-The application uses the following database models:
+```bash
+# Frontend
+cd frontend
+npm run build
 
-- **User**: Stores user information
-- **Property**: Stores property information
-- **Assessment**: Stores property assessment information
-- **LegislativeUpdate**: Stores legislative bill information
-- **AuditLog**: Logs user actions for audit purposes
+# Backend
+cd ../backend
+npm run build
+```
 
-## 📝 License
+## Deployment
+
+### Docker
+
+```bash
+docker-compose up -d
+```
+
+### Kubernetes
+
+```bash
+kubectl apply -f k8s/
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🔒 Security
+## Support
 
-- Passwords are hashed using werkzeug.security
-- Session management uses Flask-Login
-- CSRF protection is enabled
+For support, please contact support@terralegislativepulse.com
 
-## 🤝 Contributing
+## Acknowledgments
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+- Ant Design for the UI components
+- React team for the amazing framework
+- All contributors who have helped shape this project

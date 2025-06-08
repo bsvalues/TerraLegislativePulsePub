@@ -1,0 +1,56 @@
+clusterName: "terralegislativepulse"
+nodeGroup: "master"
+
+roles:
+  master: "true"
+  ingest: "true"
+  data: "true"
+
+replicas: 3
+
+esConfig:
+  elasticsearch.yml: |
+    cluster.name: ${CLUSTER_NAME}
+    network.host: 0.0.0.0
+    discovery.seed_hosts: ["terralegislativepulse-master"]
+    cluster.initial_master_nodes: ["terralegislativepulse-master-0", "terralegislativepulse-master-1", "terralegislativepulse-master-2"]
+
+resources:
+  requests:
+    cpu: "1000m"
+    memory: "2Gi"
+  limits:
+    cpu: "2000m"
+    memory: "4Gi"
+
+volumeClaimTemplate:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: terralegislativepulse-storage
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  runAsUser: 1000
+  runAsNonRoot: true
+
+podSecurityContext:
+  fsGroup: 1000
+
+antiAffinity: "hard"
+
+networkPolicy:
+  enabled: true
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  hosts:
+    - host: elasticsearch.terralegislativepulse.local
+      paths:
+        - path: /
+          pathType: Prefix 

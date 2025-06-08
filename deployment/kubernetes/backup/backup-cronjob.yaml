@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: terralegislativepulse-backup
+spec:
+  schedule: "0 0 * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: backup
+            image: postgres:13
+            command:
+            - /bin/sh
+            - -c
+            - |
+              pg_dump -h $DB_HOST -U $DB_USER -d $DB_NAME -F c -f /backup/backup-$(date +%Y%m%d).dump
+            env:
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: terralegislativepulse-secrets
+                  key: database-host
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: terralegislativepulse-secrets
+                  key: database-user
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: terralegislativepulse-secrets
+                  key: database-name
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: terralegislativepulse-secrets
+                  key: database-password
+            volumeMounts:
+            - name: backup-volume
+              mountPath: /backup
+          volumes:
+          - name: backup-volume
+            persistentVolumeClaim:
+              claimName: terralegislativepulse-backup-pvc
+          restartPolicy: OnFailure 

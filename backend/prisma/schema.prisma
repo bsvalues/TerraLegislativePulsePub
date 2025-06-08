@@ -1,0 +1,218 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Property {
+  id          String   @id @default(uuid())
+  address     Address  @relation(fields: [addressId], references: [id])
+  addressId   String   @unique
+  value       Float
+  type        PropertyType
+  status      PropertyStatus
+  owner       Owner    @relation(fields: [ownerId], references: [id])
+  ownerId     String
+  taxInfo     TaxInfo?
+  improvements PropertyImprovement[]
+  documents   PropertyDocument[]
+  history     PropertyHistory[]
+  metadata    PropertyMetadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([type])
+  @@index([status])
+  @@index([ownerId])
+}
+
+model Address {
+  id      String   @id @default(uuid())
+  street  String
+  city    String
+  state   String
+  zipCode String
+  county  String
+  property Property?
+
+  @@index([city])
+  @@index([state])
+  @@index([zipCode])
+  @@index([county])
+}
+
+model Owner {
+  id      String   @id @default(uuid())
+  name    String
+  contact Contact  @relation(fields: [contactId], references: [id])
+  contactId String @unique
+  properties Property[]
+
+  @@index([name])
+}
+
+model Contact {
+  id    String @id @default(uuid())
+  email String @unique
+  phone String
+  owner Owner?
+}
+
+model TaxInfo {
+  id          String   @id @default(uuid())
+  property    Property @relation(fields: [propertyId], references: [id])
+  propertyId  String   @unique
+  taxId       String   @unique
+  taxRate     Float
+  lastPayment DateTime
+  nextPayment DateTime
+
+  @@index([taxId])
+}
+
+model PropertyImprovement {
+  id            String   @id @default(uuid())
+  property      Property @relation(fields: [propertyId], references: [id])
+  propertyId    String
+  type          ImprovementType
+  description   String
+  value         Float
+  status        ImprovementStatus
+  startDate     DateTime
+  completionDate DateTime?
+  contractor    String?
+  permits       String[]
+  documents     String[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([propertyId])
+  @@index([type])
+  @@index([status])
+}
+
+model PropertyDocument {
+  id          String   @id @default(uuid())
+  property    Property @relation(fields: [propertyId], references: [id])
+  propertyId  String
+  name        String
+  type        DocumentType
+  category    DocumentCategory
+  url         String
+  size        Int
+  uploadDate  DateTime @default(now())
+  metadata    Json?
+
+  @@index([propertyId])
+  @@index([type])
+  @@index([category])
+}
+
+model PropertyHistory {
+  id          String   @id @default(uuid())
+  property    Property @relation(fields: [propertyId], references: [id])
+  propertyId  String
+  action      HistoryAction
+  description String
+  date        DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  changes     Json?
+
+  @@index([propertyId])
+  @@index([action])
+  @@index([userId])
+}
+
+model PropertyMetadata {
+  id            String   @id @default(uuid())
+  property      Property @relation(fields: [propertyId], references: [id])
+  propertyId    String   @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lastAssessed DateTime
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole
+  history   PropertyHistory[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([role])
+}
+
+enum PropertyType {
+  RESIDENTIAL
+  COMMERCIAL
+  INDUSTRIAL
+  AGRICULTURAL
+  MIXED_USE
+}
+
+enum PropertyStatus {
+  ACTIVE
+  PENDING
+  SOLD
+  FORECLOSED
+  DELINQUENT
+}
+
+enum ImprovementType {
+  RENOVATION
+  ADDITION
+  REPAIR
+  MAINTENANCE
+  DEMOLITION
+}
+
+enum ImprovementStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  ON_HOLD
+}
+
+enum DocumentType {
+  PDF
+  IMAGE
+  TEXT
+  SPREADSHEET
+  OTHER
+}
+
+enum DocumentCategory {
+  TAX
+  LEGAL
+  PERMIT
+  INSPECTION
+  CONTRACT
+  OTHER
+}
+
+enum HistoryAction {
+  CREATED
+  UPDATED
+  DELETED
+  ASSESSED
+  TAX_PAID
+  IMPROVEMENT_ADDED
+  DOCUMENT_ADDED
+  STATUS_CHANGED
+}
+
+enum UserRole {
+  ADMIN
+  ASSESSOR
+  CLERK
+  VIEWER
+} 

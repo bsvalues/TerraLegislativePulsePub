@@ -1,0 +1,30 @@
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: terralegislativepulse-psp
+spec:
+  privileged: false
+  seLinux:
+    rule: RunAsAny
+  runAsUser:
+    rule: MustRunAsNonRoot
+    ranges:
+    - min: 1000
+      max: 65535
+  fsGroup:
+    rule: MustRunAs
+    ranges:
+    - min: 1000
+      max: 65535
+  volumes:
+  - 'configMap'
+  - 'emptyDir'
+  - 'projected'
+  - 'secret'
+  - 'downwardAPI'
+  - 'persistentVolumeClaim'
+  allowPrivilegeEscalation: false
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  readOnlyRootFilesystem: true 
